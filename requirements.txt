@@ -1,0 +1,8 @@
+tornado==6.1
+ultraopt==0.1.1
+POAP==0.1.26
+bokeh==2.3.2
+hyperopt==0.2.5
+numpy==1.19.5
+pySOT==0.3.3
+scikit_learn==0.24.2

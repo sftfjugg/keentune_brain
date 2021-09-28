@@ -1,0 +1,59 @@
+import os
+import logging
+
+from configparser import ConfigParser
+
+LOGLEVEL = {
+    "DEBUG": logging.DEBUG,
+    "INFO": logging.INFO,
+    "WARNING": logging.WARNING,
+    "ERROR": logging.ERROR
+}
+
+
+class Config:
+    conf_file_path = "/etc/keentune/conf/brain.conf"
+    conf = ConfigParser()
+    print("read config: {}".format(conf_file_path))
+    conf.read(conf_file_path)
+
+    keentune_home = conf['home']['keentune_home']
+    keentune_workspace = conf['home']['keentune_workspace']
+    print("KeenTune Home: {}".format(keentune_home))
+    print("KeenTune Workspace: {}".format(keentune_workspace))
+
+    brain_port = conf['brain']['algo_port']
+    graph_port = conf['brain']['graph_port']
+
+    # workdir
+    data_dir = os.path.join(keentune_workspace, 'data')
+    graph_tmp_dir = os.path.join(data_dir, "tmp_graph")
+    sensi_data_dir = os.path.join(data_dir, "sensi_data")
+    tunning_data_dir = os.path.join(data_dir, "tuning_data")
+
+    # Log
+    logfile_path = conf['log']['logfile_path']
+    console_level = LOGLEVEL[conf['log']['console_level']]
+    logfile_level = LOGLEVEL[conf['log']['logfile_level']]
+    logfile_interval = int(conf['log']['logfile_interval'])
+    logfile_backup_count = int(conf['log']['logfile_backup_count'])
+
+    # Algorithm
+    hord_surrogate = conf['algorithm']['surrogate']
+    hord_strategy = conf['algorithm']['strategy']
+    max_search_space = int(conf['algorithm']['max_search_space'])
+
+    if not os.path.exists(keentune_workspace):
+        os.makedirs(keentune_workspace)
+
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+
+    if not os.path.exists(graph_tmp_dir):
+        os.makedirs(graph_tmp_dir)
+
+    if not os.path.exists(tunning_data_dir):
+        os.makedirs(tunning_data_dir)
+
+    if not os.path.exists(sensi_data_dir):
+        os.makedirs(sensi_data_dir)
