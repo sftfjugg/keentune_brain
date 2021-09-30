@@ -1,209 +1,62 @@
-# Restful API
-## /init
-### Get
-查看调优器激活情况
-### Post
-初始化调优器
-#### 输入格式
-```json
-{
-    "algorithm":"tpe",
-    "iteration":500,
-    "parameters":[{
-            "name":"kernel.sched_migration_cost_ns",
-            "range": [100000, 5000000],
-            "dtype": "int",
-            "step":1,
-            "domain":"sysctl"
-        },
-        {
-            "name":"kernel.randomize_va_space",
-            "options": ["0", "1"],
-            "dtype": "string",
-            "domain":"sysctl"
-        },
-        {
-            "name":"kernel.ipv4.udp_mem",
-            "options": ["16000 512000000 256 16000", "32000 1024000000 500 32000", "64000 2048000000 1000 64000"],
-            "dtype": "string",
-            "domain":"sysctl"
-        }
-    ]
-}
-```
-## /acquire
-### Get
-#### 返回值
-```json
-{
-    "iteration":13,
-    "candidate":[
-        {
-            "name":"kernel.sched_migration_cost_ns",
-            "range": [100000, 5000000],
-            "dtype":"int",
-            "value":4419533,
-            "domain":"sysctl"
-        },
-        {
-            "name":"kernel.randomize_va_space",
-            "options": ["0", "1"],
-            "dtype":"string",
-            "value":0,
-            "domain":"sysctl"
-        },
-        {
-            "name":"kernel.ipv4.udp_mem",
-            "options": ["16000 512000000 256 16000", "32000 1024000000 500 32000", "64000 2048000000 1000 64000"],
-            "dtype":"string",
-            "value":"64000 2048000000 1000 64000",
-            "domain":"sysctl"
-        }
-    ]
-    "budget": 1
-}
-```
-## /feedback
-### Post
-```json
-{
-    "iteration":13,
-    "candidate":[
-        {
-            "name":"kernel.sched_migration_cost_ns",
-            "range": [100000, 5000000],
-            "dtype":"int",
-            "value":4419533,
-            "domain":"sysctl"
-        },
-        {
-            "name":"kernel.randomize_va_space",
-            "options": ["0", "1"],
-            "dtype":"string",
-            "value":"0",
-            "domain":"sysctl"
-        },
-        {
-            "name":"kernel.ipv4.udp_mem",
-            "options": ["16000 512000000 256 16000", "32000 1024000000 500 32000", "64000 2048000000 1000 64000"],
-            "dtype":"string",
-            "value":"64000 2048000000 1000 64000",
-            "domain":"sysctl"
-        }
-    ],
-    "score":"100"
-}
-```
-## /feedback/v2
-```json
-{
-    "iteration":13,
-    "candidate":[
-        {
-            "name":"kernel.sched_migration_cost_ns",
-            "range": [100000, 5000000],
-            "dtype":"int",
-            "value":4419533,
-            "domain":"sysctl"
-        },
-        {
-            "name":"kernel.randomize_va_space",
-            "options": ["0", "1"],
-            "dtype":"string",
-            "value":"0",
-            "domain":"sysctl"
-        },
-        {
-            "name":"kernel.ipv4.udp_mem",
-            "options": ["16000 512000000 256 16000", "32000 1024000000 500 32000", "64000 2048000000 1000 64000"],
-            "dtype":"string",
-            "value":"64000 2048000000 1000 64000",
-            "domain":"sysctl"
-        }
-    ],
-    "score":{
-        "Throughput": {
-            "value":45000,
-            "negative": false,
-            "weight": 1,
-            "strict":false,
-            "baseline":44000
-        },
-        "Latency": {
-            "value":10,
-            "negative": true,
-            "weight": 0.1,
-            "strict":true,
-            "baseline":12
-        }
-    }
-}
+[English](./keentune-brain/README.md)| [简体中文](./keentune-brain/README.md) 
+
+# KeenTune Brain  
+## Introduction
+---  
+KeenTune-brain is an AI tuning Engine of 'KeenTune' system parameter optimization system. KeenTune-brain implements a variety of intelligent tuning algorithms. It generates a candidate configuration for KeenTune system, obtains an evaluation from Keentune-bench, and gives the optimal parameter configuration.
+
+## Installation
+---  
+### 1. install python-setuptools  
+```sh
+$ sudo apt-get install python-setuptools
+or
+$ sudo yum install python-setuptools
 ```
 
-## /best
-```json
-{
-    "iteration":13,
-    "candidate":[
-        {
-            "name":"kernel.sched_migration_cost_ns",
-            "range": [100000, 5000000],
-            "dtype":"int",
-            "value":4419533,
-            "domain":"sysctl"
-        },
-        {
-            "name":"kernel.randomize_va_space",
-            "options": ["0", "1"],
-            "dtype":"string",
-            "value":"0",
-            "domain":"sysctl"
-        },
-        {
-            "name":"kernel.ipv4.udp_mem",
-            "options": ["16000 512000000 256 16000", "32000 1024000000 500 32000", "64000 2048000000 1000 64000"],
-            "dtype":"string",
-            "value":"64000 2048000000 1000 64000",
-            "domain":"sysctl"
-        }
-    ],
-    "score":{
-        "Throughput": {
-            "value":45000,
-            "negative": false,
-            "weight": 1,
-            "strict":false,
-            "baseline":44000
-        },
-        "Latency": {
-            "value":10,
-            "negative": true,
-            "weight": 0.1,
-            "strict":true,
-            "baseline":12
-        }
-    }
-}
+### 2. install keentune-brain  
+```shell
+$ sudo python3 setup.py install
 ```
-## /end
-### Get
-终止调优, 删除调优器实例
 
-# 算法性能指标
-1. init 响应时间不超过10s
-1. acquire 响应时间不超过11s 
-2. feedback 响应时间不超过0.2s
-3. end 响应时间不超过20s(保存和分析数据)
-300轮调优算法占用时间不超过(10s + (10s + 0.2s) * 300 + 20s) = 3390s (约56min)
+### 3. install requirements  
+```shell
+$ pip3 install -r requirements.txt
+```
 
-# SMBO算法族
-## TPE
-## SMAC
-## Metis
-## GP
-## HORD
+### 4. run  
+```shell
+$ keentune-brain
+```
 
-# 其他
-## PBTTuner
-## Hyperband
-## BOHB(Bayesian Optimization Hyperband)
+## Algorithm
+---   
+### Sensitive Parameter Detection Algorithm
+### 线性回归模型 ElasticNet
+用于捕捉参数与调优结果之间明显的线性相关性。ElasticnNet可以快速训练完成，结合多轮次识别部分介绍，选择线性模型可以保障在多轮次识别的情况下，整体算法执行效率仍然较高。
+### 单变量互信息 Mutual Information
+用于捕捉单一参数和调优结果之间的线性/非线性相关性，避免由于参数冗余造成敏感参数的漏报。
+### 非线性模型XGBoost+可解释AI算法-SHAP
+用于捕捉参数与调有结果之间复杂的非线性关系，并通过可解释AI算法量化黑盒非线性模型捕捉到的相关性。
+
+### Tuning Algorithm
+#### TPE(Tree-structured Parzen Estimator)
+基于GP代理模型和SMBO框架实现的参数调优算法，KeenTune中使用[hyperopt](https://github.com/hyperopt/hyperopt)实现TPE算法   
+[Algorithms for Hyper-Parameter Optimization](https://proceedings.neurips.cc/paper/2011/file/86e8f7ab32cfd12577bc2619bc635690-Paper.pdf)
+
+#### HORD(Radial Basis Function and Dynamic coordinate search)
+基于RBF代理模型和Dycors的参数调优算法，KeenTune中使用[pySOT](https://github.com/dme65/pySOT)实现了HORD算法  
+[HORD](https://github.com/ilija139/HORD)
+
+#### ETPE
+ETPE是[ultraOpt](https://auto-flow.github.io/ultraopt/zh/)中提出的TPE算法的增强版本，KeenTune中使用[ultraOpt](https://auto-flow.github.io/ultraopt/zh/)并适配了其中提供的ETPE算法
+
+## 代码结构
+---  
++ algorithm: 算法模块，包括Tuning Algorithm和Sensitive Parameter Detection Algorithm  
++ common: 通用方法模块
++ controller: Web通信模块
++ visualization: 可视化模块
+
+## Documentation
+---  
