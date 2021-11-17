@@ -1,1 +1,4 @@
+build/
+dist/
+keentune_brain.egg-info/
 **/__pycache__/

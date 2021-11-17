@@ -14,37 +14,44 @@ def init(algorithm: str, knobs: list, max_iteration: int, opt_name: str, opt_typ
     if not optimizer is None:
         return False, "optimizer {} is running".format(optimizer.msg())
 
-    if algorithm == "tpe":
-        from brain.algorithm.tunning.tpe import TPE
-        optimizer = TPE(knobs=knobs, max_iteration=max_iteration,
-                        opt_name=opt_name, opt_type=opt_type)
+    try:
+        if algorithm == "tpe":
+            from brain.algorithm.tunning.tpe import TPE
+            optimizer = TPE(knobs=knobs, max_iteration=max_iteration,
+                            opt_name=opt_name, opt_type=opt_type)
 
-    elif algorithm == "hord":
-        from brain.algorithm.tunning.hord import HORD
-        optimizer = HORD(knobs=knobs, max_iteration=max_iteration,
-                         opt_name=opt_name, opt_type=opt_type)
-    elif algorithm == 'etpe':
-        from brain.algorithm.tunning.ultra import ultra
-        optimizer = ultra(knobs=knobs, max_iteration=max_iteration,
-                          opt_name=opt_name, ultra_algo="ETPE", opt_type=opt_type)
+        elif algorithm == "hord":
+            from brain.algorithm.tunning.hord import HORD
+            optimizer = HORD(knobs=knobs, max_iteration=max_iteration,
+                            opt_name=opt_name, opt_type=opt_type)
+        elif algorithm == 'etpe':
+            from brain.algorithm.tunning.ultra import ultra
+            optimizer = ultra(knobs=knobs, max_iteration=max_iteration,
+                            opt_name=opt_name, ultra_algo="ETPE", opt_type=opt_type)
 
-    elif algorithm == 'forest':
-        from brain.algorithm.tunning.ultra import ultra
-        optimizer = ultra(knobs=knobs, max_iteration=max_iteration,
-                          opt_name=opt_name, ultra_algo="Forest", opt_type=opt_type)
+        elif algorithm == 'forest':
+            from brain.algorithm.tunning.ultra import ultra
+            optimizer = ultra(knobs=knobs, max_iteration=max_iteration,
+                            opt_name=opt_name, ultra_algo="Forest", opt_type=opt_type)
 
-    elif algorithm == 'gbrt':
-        from brain.algorithm.tunning.ultra import ultra
-        optimizer = ultra(knobs=knobs, max_iteration=max_iteration,
-                          opt_name=opt_name, ultra_algo="GBRT", opt_type=opt_type)
+        elif algorithm == 'gbrt':
+            from brain.algorithm.tunning.ultra import ultra
+            optimizer = ultra(knobs=knobs, max_iteration=max_iteration,
+                            opt_name=opt_name, ultra_algo="GBRT", opt_type=opt_type)
 
-    elif algorithm == 'random':
-        from brain.algorithm.tunning.ultra import ultra
-        optimizer = ultra(knobs=knobs, max_iteration=max_iteration,
-                          opt_name=opt_name, ultra_algo="Random", opt_type=opt_type)
+        elif algorithm == 'random':
+            from brain.algorithm.tunning.ultra import ultra
+            optimizer = ultra(knobs=knobs, max_iteration=max_iteration,
+                            opt_name=opt_name, ultra_algo="Random", opt_type=opt_type)
 
-    else:
-        return False, "unknown algorithom:{}".format(algorithm)
+        else:
+            return False, "unknown algorithom:{}".format(algorithm)
+
+    except ModuleNotFoundError as e:
+        return False, "Failed to import dependent of algorithm {}: {}".format(algorithm, e)
+
+    except ImportError as e:
+        return False, "Failed to import dependent of algorithm {}: {}".format(algorithm, e)
 
     return True, optimizer.msg()
 
