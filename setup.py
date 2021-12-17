@@ -7,7 +7,7 @@ setup(
     version = "1.0.0",
     description = "KeenTune brain unit",
     long_description = long_description,
-    url = "https://codeup.openanolis.cn/codeup/keentune/keentune_brain",
+    url = "https://gitee.com/anolis/keentune_brain",
     license = "MulanPSLv2",
     classifiers = [
         "Environment:: KeenTune",
@@ -19,7 +19,7 @@ setup(
         "Programming Language :: Python :: 3.6",
         "ProgrammingLanguage :: Python"
     ],
-
+    python_requires='>=3.6',
     packages = find_packages(),
     package_data={'brain': ['brain.conf']},
     
