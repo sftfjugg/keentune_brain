@@ -24,7 +24,7 @@ setup(
     package_data={'brain': ['brain.conf']},
     
     data_files = [
-        ("/etc/keentune/",["LICENSE"]),
+        ("/etc/keentune/brain",["LICENSE"]),
         ("/etc/keentune/conf", ["brain/brain.conf"]),
     ],
 )
