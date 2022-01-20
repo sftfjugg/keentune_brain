@@ -13,7 +13,7 @@ RESTFUL API:
     /feedback: Feedback benchmark performance score to latest configuration candidate.
     /best    : Get best configuration.
     /end     : End the optimizer active.
-
+WEB API:
     /sensitize : Calculate sensitivity of parameters.
     /sensitize_list  : List numpy data file which can used for calculating sensitivity of parameters.
     /sensitize_delete: Remove numpy data file.
