@@ -3,12 +3,17 @@ from setuptools import setup, find_packages
 long_description = ""
 
 setup(
-    name = "keentune-brain",
-    version = "1.0.0",
+    name        = "keentune-brain",
+    version     = "1.0.0",
     description = "KeenTune brain unit",
+    url         = "https://gitee.com/anolis/keentune_brain",
+    license     = "MulanPSLv2",
+    packages    = find_packages(),
+    package_data= {'brain': ['brain.conf']},
+
+    python_requires  = '>=3.6',
     long_description = long_description,
-    url = "https://gitee.com/anolis/keentune_brain",
-    license = "MulanPSLv2",
+
     classifiers = [
         "Environment:: KeenTune",
         "IntendedAudience :: Information Technology",
@@ -19,12 +24,11 @@ setup(
         "Programming Language :: Python :: 3.6",
         "ProgrammingLanguage :: Python"
     ],
-    python_requires='>=3.6',
-    packages = find_packages(),
-    package_data={'brain': ['brain.conf']},
-    
-    data_files = [
-        ("/etc/keentune/brain",["LICENSE"]),
+    data_files  = [
+        ("/etc/keentune/brain", ["LICENSE"]),
         ("/etc/keentune/conf", ["brain/brain.conf"]),
     ],
+    entry_points = {
+        'console_scripts': ['keentune-brain=brain.brain:main']
+    }
 )

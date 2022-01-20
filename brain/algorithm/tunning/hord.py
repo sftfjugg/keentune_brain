@@ -8,7 +8,7 @@ from pySOT.optimization_problems import OptimizationProblem
 from poap.controller import BasicWorkerThread, ThreadController
 
 from brain.algorithm.tunning.base import OptimizerUnit
-from brain.common.config import Config
+from brain.common.config import AlgoConfig
 from brain.common.pylog import normalFuncLog
 
 
@@ -18,7 +18,7 @@ def _adjustStep(param: dict):
 
     If step is not defined in param, use default value step = 1.
 
-    Adjust step to limit search space smaller than Config.max_search_space
+    Adjust step to limit search space smaller than AlgoConfig.max_search_space
 
     Args:
         param (dict): parameter dictionary
@@ -36,7 +36,7 @@ def _adjustStep(param: dict):
     else:
         step = default_step
 
-    while (param['range'][1] - param['range'][0]) / step > Config.max_search_space:
+    while (param['range'][1] - param['range'][0]) / step > AlgoConfig.max_search_space:
         step *= 2
 
     return step
@@ -133,13 +133,13 @@ class HORD(OptimizerUnit):
             pySOT.surrogate: surrogate in pySOT
         """
         # Choose surrogate of HORD
-        if Config.hord_surrogate == 'RBFInterpolant':
+        if AlgoConfig.hord_surrogate == 'RBFInterpolant':
             return surrogate.RBFInterpolant
 
-        elif Config.hord_surrogate == 'PolyRegressor':
+        elif AlgoConfig.hord_surrogate == 'PolyRegressor':
             return surrogate.PolyRegressor
 
-        elif Config.hord_surrogate == 'GPRegressor':
+        elif AlgoConfig.hord_surrogate == 'GPRegressor':
             return surrogate.GPRegressor
 
         else:
@@ -154,16 +154,16 @@ class HORD(OptimizerUnit):
         Returns:
             pySOT.strategy: strategy in pySOT
         """
-        if Config.hord_strategy == 'DYCORSStrategy':
+        if AlgoConfig.hord_strategy == 'DYCORSStrategy':
             return strategy.DYCORSStrategy
 
-        elif Config.hord_strategy == 'SRBFStrategy':
+        elif AlgoConfig.hord_strategy == 'SRBFStrategy':
             return strategy.SRBFStrategy
 
-        elif Config.hord_strategy == 'SOPStrategy':
+        elif AlgoConfig.hord_strategy == 'SOPStrategy':
             return strategy.SOPStrategy
 
-        elif Config.hord_strategy == 'EIStrategy' and Config.hord_surrogate == 'GPRegressor':
+        elif AlgoConfig.hord_strategy == 'EIStrategy' and AlgoConfig.hord_surrogate == 'GPRegressor':
             return strategy.EIStrategy
 
         else:

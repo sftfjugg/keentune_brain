@@ -10,13 +10,22 @@ LOGLEVEL = {
     "ERROR": logging.ERROR
 }
 
+conf_file_path = "/etc/keentune/conf/brain.conf"
+conf = ConfigParser()
+conf.read(conf_file_path)
+print("Read config: {}".format(conf_file_path))
+
+
+class AlgoConfig:
+    # Algorithm.base
+    max_search_space = int(conf['algorithm']['max_search_space'])
+
+    # Algorithm.hord
+    hord_surrogate = conf['hord']['surrogate']
+    hord_strategy = conf['hord']['strategy']
+
 
 class Config:
-    conf_file_path = "/etc/keentune/conf/brain.conf"
-    conf = ConfigParser()
-    print("read config: {}".format(conf_file_path))
-    conf.read(conf_file_path)
-
     keentune_home = conf['home']['keentune_home']
     keentune_workspace = conf['home']['keentune_workspace']
     print("KeenTune Home: {}".format(keentune_home))
@@ -37,11 +46,6 @@ class Config:
     logfile_level = LOGLEVEL[conf['log']['logfile_level']]
     logfile_interval = int(conf['log']['logfile_interval'])
     logfile_backup_count = int(conf['log']['logfile_backup_count'])
-
-    # Algorithm
-    hord_surrogate = conf['algorithm']['surrogate']
-    hord_strategy = conf['algorithm']['strategy']
-    max_search_space = int(conf['algorithm']['max_search_space'])
 
     if not os.path.exists(keentune_workspace):
         os.makedirs(keentune_workspace)

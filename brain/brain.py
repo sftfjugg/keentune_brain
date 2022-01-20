@@ -2,7 +2,6 @@ import tornado
 
 from brain.controller import tunning, sensi, system
 
-from brain.common import pylog
 from brain.common.config import Config
 
 """
@@ -18,18 +17,10 @@ RESTFUL API:
     /sensitize : Calculate sensitivity of parameters.
     /sensitize_list  : List numpy data file which can used for calculating sensitivity of parameters.
     /sensitize_delete: Remove numpy data file.
-
-WEB API:
-    /score: Show the tunning process data such as score, loss and time cast.
-    /param: Show the relationship between parameters and score and the relationship between parameters and iteration.
-    /sensi: Show the sensitivity rinking of parameters.
-
 """
 
 
 def main():
-    pylog.init()
-
     app_brain = tornado.web.Application(handlers=[
         (r"/init", tunning.InitHandler),
         (r"/acquire", tunning.AcquireHandler),

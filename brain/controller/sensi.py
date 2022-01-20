@@ -2,25 +2,8 @@ import json
 
 from tornado.web import RequestHandler
 
-from brain.common.pylog import APILog, functionLog
 from brain.common.system import HTTPPost
 from brain.algorithm.sensitize.sensitize import sensitize
-
-
-class sensiGraphHandler(RequestHandler):
-    @APILog
-    def get(self):
-        from brain.visualization.sensiGraph import getSensiGraph
-
-        suc, html_file_path = getSensiGraph()
-        if not suc:
-            self.write("get sensi graph failed:{}".format(html_file_path))
-            self.set_status(200)
-            self.finish()
-
-        else:
-            self.render(html_file_path)
-            self.set_status(200)
 
 
 class sensitizeHandler(RequestHandler):
@@ -65,3 +48,17 @@ class sensitizeHandler(RequestHandler):
                 port=resp_port,
                 data=response_data
             )
+
+
+class sensiGraphHandler(RequestHandler):
+    def get(self):
+        from brain.visualization.sensiGraph import getSensiGraph
+        suc, html_file_path = getSensiGraph()
+        if not suc:
+            self.write("get sensi graph failed:{}".format(html_file_path))
+            self.set_status(200)
+            self.finish()
+
+        else:
+            self.render(html_file_path)
+            self.set_status(200)

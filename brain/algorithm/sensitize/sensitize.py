@@ -108,15 +108,15 @@ def _getStability(Z):
     Return:
         stable: The stability of the feature selection procedure
     """
-    n_trails, n_params = mask.shape
+    n_trails, n_params = Z.shape
     # get empirical mean factor
     empirical_factor = float(n_trails) / (n_trails - 1)
 
     # get mean of mask values and compute 1st step stable score
-    mask_mean = mask.mean(axis=0)
-    stable = np.multiply(mask_mean, 1 - mask_mean).mean()
+    Z_mean = Z.mean(axis=0)
+    stable = np.multiply(Z_mean, 1 - Z_mean).mean()
     # get expected value of mask as normalizing facotor
-    mask_expected = mask_mean.sum()
+    mask_expected = Z_mean.sum()
     normalize_factor = (mask_expected / n_params) * \
         (1 - mask_expected / n_params)
 

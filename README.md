@@ -48,9 +48,6 @@ $ keentune-brain
 基于RBF代理模型和Dycors的参数调优算法，KeenTune中使用[pySOT](https://github.com/dme65/pySOT)实现了HORD算法  
 [HORD](https://github.com/ilija139/HORD)
 
-#### ETPE
-ETPE是[ultraOpt](https://auto-flow.github.io/ultraopt/zh/)中提出的TPE算法的增强版本，KeenTune中使用[ultraOpt](https://auto-flow.github.io/ultraopt/zh/)并适配了其中提供的ETPE算法
-
 ## 代码结构
 ---  
 + algorithm: 算法模块，包括Tuning Algorithm和Sensitive Parameter Detection Algorithm  
