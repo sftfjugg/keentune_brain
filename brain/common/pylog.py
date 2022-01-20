@@ -10,33 +10,41 @@ from logging.handlers import TimedRotatingFileHandler
 
 logger = logging.getLogger(__name__)
 
+logger.setLevel(Config.logfile_level)
+
+# Console Handler
+console_handler = logging.StreamHandler()
+console_handler.setLevel(Config.console_level)
+console_handler.setFormatter(logging.Formatter(
+    "[%(levelname)s] %(asctime)s: %(message)s"))
+logger.addHandler(console_handler)
+
+# Log file Handler
+file_handler = TimedRotatingFileHandler(
+    Config.logfile_path,
+    when='D',
+    interval=Config.logfile_interval,
+    backupCount=Config.logfile_backup_count
+)
+file_handler.setLevel(Config.logfile_level)
+file_handler.setFormatter(logging.Formatter(
+    "[%(levelname)s] %(asctime)s: %(message)s"))
+logger.addHandler(file_handler)
+
+# Error log file Handler
+error_handler = TimedRotatingFileHandler(
+    Config.logfile_path + '.error',
+    when='D',
+    interval=Config.logfile_interval,
+    backupCount=Config.logfile_backup_count
+)
+error_handler.setLevel(logging.ERROR)
+error_handler.setFormatter(logging.Formatter(
+    "[%(levelname)s] %(asctime)s: %(message)s"))
+logger.addHandler(error_handler)
+
 CALL_LEVEL = -1
 PLACEHOLDER = " " * 4
-
-
-def init(debug=False):
-    logger.setLevel(Config.logfile_level)
-
-    # Console Handler
-    ch = logging.StreamHandler()
-    if debug:
-        ch.setLevel(logging.DEBUG)
-    else:
-        ch.setLevel(Config.console_level)
-    ch.setFormatter(logging.Formatter(
-        "[%(levelname)s] %(asctime)s: %(message)s"))
-    logger.addHandler(ch)
-
-    # Files Handler
-    fh = TimedRotatingFileHandler(
-        Config.logfile_path,
-        when='D',
-        interval=Config.logfile_interval,
-        backupCount=Config.logfile_backup_count
-    )
-    fh.setFormatter(logging.Formatter(
-        "[%(levelname)s] %(asctime)s: %(message)s"))
-    logger.addHandler(fh)
 
 
 def functionLog(func):

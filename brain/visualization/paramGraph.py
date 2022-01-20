@@ -1,15 +1,13 @@
 import os
 import time
 import numpy as np
-from collections import defaultdict
-
-from brain.common import tools
-from brain.common.config import Config
-from brain.visualization.common import getGradualColor, getGradualColor2
 
 from bokeh.plotting import figure, output_file, show
 from bokeh.layouts import gridplot
 
+from brain.common import tools
+from brain.common.config import Config
+from brain.visualization.common import getGradualColor, getGradualColor2
 from brain.common.pylog import normalFuncLog
 
 

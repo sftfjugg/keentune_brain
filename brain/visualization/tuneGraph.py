@@ -3,11 +3,9 @@ import time
 import numpy as np
 
 from brain.common.config import Config
-from brain.visualization.common import _drawLineGraph
-
+from brain.visualization.common import drawLineGraph
 from bokeh.plotting import figure, output_file, show
 from bokeh.layouts import gridplot
-
 from brain.common.pylog import normalFuncLog
 
 COLORS = [
@@ -62,8 +60,8 @@ def getScoreTimeGraph(score_matrix: np.array, time_matrix: np.array, bench: dict
             best_score = [np.max(score_matrix[:j+1, i]) /
                           baseline for j in range(score_matrix.shape[0])]
 
-        _drawLineGraph(score_time_graph, best_score,
-                       label[i], COLORS[i % len(COLORS)], x_value=x_value)
+        drawLineGraph(score_time_graph, best_score,
+                      label[i], COLORS[i % len(COLORS)], x_value=x_value)
 
     score_time_graph.legend.location = "top_left"
     score_time_graph.legend.click_policy = "hide"
@@ -92,7 +90,7 @@ def getScoreIterationGraph(score_matrix: np.array, bench: dict):
     label = list(bench.keys())
     for i in range(len(label)):
         baseline = bench[label[i]]['baseline']
-        _drawLineGraph(
+        drawLineGraph(
             score_graph, score_matrix[..., i]/baseline, label[i], COLORS[i % len(COLORS)])
 
     score_graph.legend.location = "top_left"
@@ -118,13 +116,13 @@ def getTimeIterationGraph(time_matrix: np.array):
         title="Time Graph")
 
     acquire_time = time_matrix[..., 1] - time_matrix[..., 0]
-    _drawLineGraph(time_graph, acquire_time, "acquire_time", COLORS[0])
+    drawLineGraph(time_graph, acquire_time, "acquire_time", COLORS[0])
 
     benchmark_time = time_matrix[..., 2] - time_matrix[..., 1]
-    _drawLineGraph(time_graph, benchmark_time, "benchmark_time", COLORS[1])
+    drawLineGraph(time_graph, benchmark_time, "benchmark_time", COLORS[1])
 
     feedback_time = time_matrix[..., 3] - time_matrix[..., 2]
-    _drawLineGraph(time_graph, feedback_time, "feedback_time", COLORS[2])
+    drawLineGraph(time_graph, feedback_time, "feedback_time", COLORS[2])
 
     time_graph.legend.location = "top_left"
     time_graph.legend.click_policy = "hide"
@@ -151,7 +149,7 @@ def getLossIterationGraph(bench: dict, loss_parts: np.array):
 
     label = list(bench.keys())
     for i in range(loss_parts.shape[1]):
-        _drawLineGraph(
+        drawLineGraph(
             loss_graph, loss_parts[..., i], label[i], COLORS[i % len(COLORS)])
 
     loss_graph.legend.location = "top_left"

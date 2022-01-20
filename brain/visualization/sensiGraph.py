@@ -4,13 +4,11 @@ import pickle
 import numpy as np
 
 from bokeh.plotting import figure, output_file, show
-
 from brain.common.config import Config
 from brain.common.pylog import functionLog
 
 GRAPH_WIDTH = 800
 GRAPH_HEIGHT = 800
-
 
 @functionLog
 def __getLatestSensiData():
