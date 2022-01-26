@@ -1,4 +1,4 @@
-%define anolis_release 5
+%define anolis_release 6
 
 #
 # spec file for package KeenTune-brain
@@ -37,11 +37,20 @@ cp -f ./keentune-brain.service ${RPM_BUILD_ROOT}/usr/lib/systemd/system/
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+%postun
+CONF_DIR=%{_sysconfdir}/keentune/conf
+if [ "$(ls -A $CONF_DIR)"="" ]; then
+        rm -rf $CONF_DIR
+fi
+
 %files -f INSTALLED_FILES
 %license LICENSE
 %{_libdir}/systemd/system/keentune-brain.service
 
 %changelog
+* Wed Jan 26 2022 lilinjie <lilinjie@uniontech.com> - 1.0.0-6
+- remove empty conf dir when uninstall keentune-brain
+
 * Wed Dec 12 2021 Runzhe Wang <15501019889@126.com> - 1.0.0-5
 - fix bug: can not running in alinux2 and centos7
 - change modify codeup address to gitee
