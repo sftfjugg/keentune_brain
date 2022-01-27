@@ -13,7 +13,7 @@ RESTFUL API:
     /feedback: Feedback benchmark performance score to latest configuration candidate.
     /best    : Get best configuration.
     /end     : End the optimizer active.
-WEB API:
+WEB API
     /sensitize : Calculate sensitivity of parameters.
     /sensitize_list  : List numpy data file which can used for calculating sensitivity of parameters.
     /sensitize_delete: Remove numpy data file.
@@ -35,9 +35,9 @@ def main():
     http_server_brain.listen(Config.brain_port)
 
     app_graph = tornado.web.Application(handlers=[
-        (r"/", tunning.scoreGraphHandler),
-        (r"/param", tunning.paramGraphHandler),
-        (r"/score", tunning.scoreGraphHandler),
+        # (r"/", tunning.scoreGraphHandler),
+        # (r"/param", tunning.paramGraphHandler),
+        # (r"/score", tunning.scoreGraphHandler),
         (r"/sensi", sensi.sensiGraphHandler),
     ])
     http_server_graph = tornado.httpserver.HTTPServer(app_graph)

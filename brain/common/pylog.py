@@ -46,125 +46,42 @@ logger.addHandler(error_handler)
 CALL_LEVEL = -1
 PLACEHOLDER = " " * 4
 
-
-def functionLog(func):
+def logit(func):
     """ Auto logging decorator to function calling
 
     Function is excepeted return tuple as (suc, data).
     Logging arguements of this function and return value.
-    Handling all exception occured in this function, logging traceback and return False.
-
+    logging traceback if exception occured in this function.
     """
     @functools.wraps(func)
     def wrapper(*args, **kw):
         global CALL_LEVEL, PLACEHOLDER
         CALL_LEVEL += 1
 
-        if CALL_LEVEL == 0:
-            logger.info("{placeholder}[{module}.{func}] << {args} {kw}".format(
-                        placeholder=PLACEHOLDER*CALL_LEVEL,
-                        module=func.__module__,
-                        func=func.__qualname__,
-                        args=",".join(["{}".format(_arg) for _arg in args]),
-                        kw=",".join(["{} = {}".format(k, v) for k, v in kw.items()])))
-        else:
-            logger.debug("{placeholder}[{module}.{func}] << {args} {kw}".format(
-                placeholder=PLACEHOLDER*CALL_LEVEL,
-                module=func.__module__,
-                func=func.__qualname__,
-                args=",".join(["{}".format(_arg) for _arg in args]),
-                kw=",".join(["{} = {}".format(k, v) for k, v in kw.items()])))
-
-        try:
-            suc, res = func(*args, **kw)
-
-        except Exception as e:
-            logger.critical('[{module}.{func}] {trace}'.format(
-                module=func.__module__,
-                func=func.__qualname__,
-                trace=traceback.format_exc()))
-            CALL_LEVEL -= 1
-            return False, e
-
-        else:
-            if suc:
-                if CALL_LEVEL == 0:
-                    logger.info("{placeholder}[{module}.{func}] >> {out}".format(
-                        placeholder=PLACEHOLDER*CALL_LEVEL,
-                        module=func.__module__,
-                        func=func.__qualname__,
-                        out=res))
-                else:
-                    logger.debug("{placeholder}[{module}.{func}] >> {out}".format(
-                        placeholder=PLACEHOLDER*CALL_LEVEL,
-                        module=func.__module__,
-                        func=func.__qualname__,
-                        out=res))
-
-            else:
-                logger.error("{placeholder}[{module}.{func}] {error}".format(
-                    placeholder=PLACEHOLDER*CALL_LEVEL,
-                    module=func.__module__,
-                    func=func.__qualname__,
-                    error=res))
-            CALL_LEVEL -= 1
-            return suc, res
-
-    return wrapper
-
-
-def normalFuncLog(func):
-    """ More general auto logging decorator to function call
-
-    Function can return any form of data.
-    Handling all exception occured in this function, logging traceback and return None.
-
-    """
-    @functools.wraps(func)
-    def wrapper(*args, **kw):
-        global CALL_LEVEL, PLACEHOLDER
-        CALL_LEVEL += 1
-
-        if CALL_LEVEL == 0:
-            logger.info("{placeholder}[{module}.{func}] << {args} {kw}".format(
-                placeholder=PLACEHOLDER*CALL_LEVEL,
-                module=func.__module__,
-                func=func.__qualname__,
-                args=",".join(["{}".format(_arg) for _arg in args]),
-                kw=",".join(["{} = {}".format(k, v) for k, v in kw.items()])))
-        else:
-            logger.debug("{placeholder}[{module}.{func}] << {args} {kw}".format(
-                placeholder=PLACEHOLDER*CALL_LEVEL,
-                module=func.__module__,
-                func=func.__qualname__,
-                args=",".join(["{}".format(_arg) for _arg in args]),
-                kw=",".join(["{} = {}".format(k, v) for k, v in kw.items()])))
+        logger.debug("{placeholder}[{module}.{func}] << {args} {kw}".format(
+            placeholder=PLACEHOLDER*CALL_LEVEL,
+            module=func.__module__,
+            func=func.__qualname__,
+            args=",".join(["{}".format(_arg) for _arg in args]),
+            kw=",".join(["{} = {}".format(k, v) for k, v in kw.items()])))
 
         try:
             out = func(*args, **kw)
 
         except Exception as e:
-            logger.critical('[{module}.{func}] {trace}'.format(
+            logger.error('[{module}.{func}] {trace}'.format(
                 module=func.__module__,
                 func=func.__qualname__,
                 trace=traceback.format_exc()))
             CALL_LEVEL -= 1
-            return None
+            raise e
 
         else:
-            if CALL_LEVEL == 0:
-                logger.info("{placeholder}[{module}.{func}] >> {out}".format(
-                    placeholder=PLACEHOLDER*CALL_LEVEL,
-                    module=func.__module__,
-                    func=func.__qualname__,
-                    out=out))
-            else:
-                logger.debug("{placeholder}[{module}.{func}] >> {out}".format(
-                    placeholder=PLACEHOLDER*CALL_LEVEL,
-                    module=func.__module__,
-                    func=func.__qualname__,
-                    out=out))
-
+            logger.debug("{placeholder}[{module}.{func}] >> {out}".format(
+                placeholder=PLACEHOLDER*CALL_LEVEL,
+                module=func.__module__,
+                func=func.__qualname__,
+                out=out))
             CALL_LEVEL -= 1
             return out
 

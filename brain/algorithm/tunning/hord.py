@@ -9,10 +9,10 @@ from poap.controller import BasicWorkerThread, ThreadController
 
 from brain.algorithm.tunning.base import OptimizerUnit
 from brain.common.config import AlgoConfig
-from brain.common.pylog import normalFuncLog
+from brain.common import pylog
 
 
-@normalFuncLog
+@pylog.logit
 def _adjustStep(param: dict):
     """ Get step of params and adjust it.
 
@@ -43,7 +43,7 @@ def _adjustStep(param: dict):
 
 
 class Problem(OptimizationProblem):
-    @normalFuncLog
+    @pylog.logit
     def __init__(self, knobs: list, max_iteration: int):
         """ Init HORD problem to solve.
 
@@ -60,7 +60,7 @@ class Problem(OptimizationProblem):
 
         self.buildSearchSpace(knobs)
 
-    @normalFuncLog
+    @pylog.logit
     def buildSearchSpace(self, knobs: list):
         """ Build HORD parameter search space.
 
@@ -90,7 +90,7 @@ class Problem(OptimizationProblem):
         self.int_var = np.array(self.int_var)
         self.cont_var = np.array(self.cont_var)
 
-    @normalFuncLog
+    @pylog.logit
     def eval(self, config):
         """ Evaluate a config
 
@@ -114,9 +114,15 @@ class Problem(OptimizationProblem):
 
 
 class HORD(OptimizerUnit):
-    @normalFuncLog
-    def __init__(self, knobs, max_iteration, opt_name, opt_type: str):
-        super(HORD, self).__init__(knobs, max_iteration, opt_name, opt_type)
+    @pylog.logit
+    def __init__(self, 
+                 opt_name: str, 
+                 opt_type: str,
+                 max_iteration: int,
+                 knobs: list, 
+                 baseline: dict):
+
+        super(HORD, self).__init__(opt_name, opt_type, max_iteration, knobs, baseline)
         self.problem = Problem(knobs, max_iteration)
 
         self.strategy = self.__getStrategy()
@@ -125,7 +131,7 @@ class HORD(OptimizerUnit):
         self.process = Process(target=self._fit, args=(self.problem,))
         self.process.start()
 
-    @normalFuncLog
+    @pylog.logit
     def __getSurrogate(self):
         """ choose surrogate of pySOT
 
@@ -145,7 +151,7 @@ class HORD(OptimizerUnit):
         else:
             return surrogate.RBFInterpolant
 
-    @normalFuncLog
+    @pylog.logit
     def __getStrategy(self):
         """ choose strategy for HORD
 
@@ -169,7 +175,7 @@ class HORD(OptimizerUnit):
         else:
             return strategy.DYCORSStrategy
 
-    @normalFuncLog
+    @pylog.logit
     def _fit(self, problem):
         self.controller = ThreadController()
         ''' create and reset surrogate '''
@@ -201,17 +207,17 @@ class HORD(OptimizerUnit):
 
         return result
 
-    @normalFuncLog
+    @pylog.logit
     def acquireImpl(self):
         configuration = self.problem.configuration_pipe[1].recv()
         return configuration, 1.0
 
-    @normalFuncLog
+    @pylog.logit
     def feedbackImpl(self, iteration, loss):
         if iteration <= self.dim * 2:
             self.sigma = 1
         self.problem.loss_pipe[0].send(loss)
 
-    @normalFuncLog
+    @pylog.logit
     def msg(self):
         return "HORD Optimizer(v1.0)"

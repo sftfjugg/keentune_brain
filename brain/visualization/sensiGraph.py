@@ -5,12 +5,13 @@ import numpy as np
 
 from bokeh.plotting import figure, output_file, show
 from brain.common.config import Config
-from brain.common.pylog import functionLog
+from brain.common import pylog
 
 GRAPH_WIDTH = 800
 GRAPH_HEIGHT = 800
 
-@functionLog
+
+@pylog.logit
 def __getLatestSensiData():
     """ Get latest sensitivity result data
     """
@@ -26,7 +27,7 @@ def __getLatestSensiData():
         return True, choice_table[-1][1]
 
 
-@functionLog
+@pylog.logit
 def getSensiGraph():
     """Get sensitize graph.
 

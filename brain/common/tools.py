@@ -43,16 +43,20 @@ def dataList():
         ]
     """
     data_path_list = []
-    sub_folder_name_list = list(os.listdir(Config.tunning_data_dir))
-    for _type in sub_folder_name_list:
-        file_list = list(os.listdir(
-            os.path.join(Config.tunning_data_dir, _type)))
-        for file_name in file_list:
-            data_path_list.append({
-                "name": re.split(r"[\[\]]", file_name)[0],
-                "type": _type,
-                "algorithm": re.split(r"[\[\]]", file_name)[1]
-            })
+    for opt_type in list(os.listdir(Config.tunning_data_dir)):
+        for opt_name in list(os.listdir(os.path.join(Config.tunning_data_dir, opt_type))):
+            if not re.search(r"(.*)\[(.*)\]", opt_name):
+                continue
+                
+            name = re.search(r"(.*)\[(.*)\]", opt_name).group(1)
+            algorithm = re.search(r"(.*)\[(.*)\]", opt_name).group(2)
+            data_path_list.append(
+                {
+                    "name"      : name,
+                    "tpye"      : opt_type,
+                    "algorithm" : algorithm
+                }
+            )
     return data_path_list
 
 

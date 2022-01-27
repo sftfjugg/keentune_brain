@@ -1,8 +1,8 @@
 from bokeh.palettes import YlGnBu
-from brain.common.pylog import normalFuncLog
+from brain.common import pylog
 
 
-@normalFuncLog
+@pylog.logit
 def getGradualColor(num: int):
     step = 255 / num
     gradual_color = []
@@ -14,8 +14,7 @@ def getGradualColor(num: int):
         B = min(B + step/2, 128)
     return gradual_color
 
-
-@normalFuncLog
+@pylog.logit
 def getGradualColor2(num: int):
     step = 255 / num
     gradual_color = []
@@ -27,8 +26,7 @@ def getGradualColor2(num: int):
         B = min(B + step, 255)
     return gradual_color
 
-
-@normalFuncLog
+@pylog.logit
 def drawLineGraph(graph, y_value, label, color, x_value=None):
     """Draw line graph with points
 

@@ -8,10 +8,9 @@ from bokeh.layouts import gridplot
 from brain.common import tools
 from brain.common.config import Config
 from brain.visualization.common import getGradualColor, getGradualColor2
-from brain.common.pylog import normalFuncLog
+from brain.common import pylog
 
-
-@normalFuncLog
+@pylog.logit
 def __getParamIterationGraph(points, knobs):
     """Get param iteration graph, show the relationship between parameter values and iteraion.
 
@@ -59,8 +58,7 @@ def __getParamIterationGraph(points, knobs):
     param_iteration_graph.xaxis.axis_label = "Parameters Value"
     return param_iteration_graph
 
-
-@normalFuncLog
+@pylog.logit
 def __getParamScoreGraph(points, knobs, loss):
     """Get param score graph, show the relationship between parameter values and score.
 
@@ -109,8 +107,7 @@ def __getParamScoreGraph(points, knobs, loss):
     param_score_graph.xaxis.axis_label = "Parameters Value"
     return param_score_graph
 
-
-@normalFuncLog
+@pylog.logit
 def getParamGraph(points, knobs, loss):
     end_iteration = points.shape[0]
     for i in range(points.shape[0]):

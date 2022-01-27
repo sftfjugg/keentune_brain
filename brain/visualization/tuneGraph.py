@@ -6,7 +6,7 @@ from brain.common.config import Config
 from brain.visualization.common import drawLineGraph
 from bokeh.plotting import figure, output_file, show
 from bokeh.layouts import gridplot
-from brain.common.pylog import normalFuncLog
+from brain.common import pylog
 
 COLORS = [
     "#1E90FF",
@@ -21,8 +21,7 @@ COLORS = [
 GRAPH_WIDTH = 1200
 GRAPH_HEIGHT = 800
 
-
-@normalFuncLog
+@pylog.logit
 def getScoreTimeGraph(score_matrix: np.array, time_matrix: np.array, bench: dict):
     """ Get score-time graph.
 
@@ -70,8 +69,7 @@ def getScoreTimeGraph(score_matrix: np.array, time_matrix: np.array, bench: dict
 
     return score_time_graph
 
-
-@normalFuncLog
+@pylog.logit
 def getScoreIterationGraph(score_matrix: np.array, bench: dict):
     """Get Score-iteration graph.
 
@@ -99,8 +97,7 @@ def getScoreIterationGraph(score_matrix: np.array, bench: dict):
     score_graph.xaxis.axis_label = "Benchmark Score"
     return score_graph
 
-
-@normalFuncLog
+@pylog.logit
 def getTimeIterationGraph(time_matrix: np.array):
     """ Time cast graph.
 
@@ -130,8 +127,7 @@ def getTimeIterationGraph(time_matrix: np.array):
     time_graph.xaxis.axis_label = "Time Cost"
     return time_graph
 
-
-@normalFuncLog
+@pylog.logit
 def getLossIterationGraph(bench: dict, loss_parts: np.array):
     """ Loss-iteration graph
 
@@ -158,8 +154,7 @@ def getLossIterationGraph(bench: dict, loss_parts: np.array):
     loss_graph.xaxis.axis_label = "Loss Value"
     return loss_graph
 
-
-@normalFuncLog
+@pylog.logit
 def unionGraph(bench: dict, score_matrix: np.array, time_matrix: np.array, loss_parts: np.array):
     """ Get union graph contains score-iteration graph, time-iteration graph, loss-iteration graph and best score-time graph.
 

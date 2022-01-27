@@ -5,13 +5,19 @@ from copy import deepcopy
 from multiprocessing import Process, Pipe
 
 from brain.common.config import AlgoConfig
-from brain.common.pylog import normalFuncLog
 from brain.algorithm.tunning.base import OptimizerUnit
+from brain.common import pylog
 
 
 class TPE(OptimizerUnit):
-    @normalFuncLog
-    def __init__(self, knobs: dict, max_iteration: int, opt_name: str, opt_type: str):
+    @pylog.logit
+    def __init__(self, 
+                 opt_name: str, 
+                 opt_type: str,
+                 max_iteration: int,
+                 knobs: list, 
+                 baseline: dict):
+                         
         """Init optimizer instance, use tpe algorithm
 
         Args:
@@ -19,7 +25,8 @@ class TPE(OptimizerUnit):
             max_iteration (int): tuning max iteration
         """
 
-        super(TPE, self).__init__(knobs, max_iteration, opt_name, opt_type)
+        super(TPE, self).__init__(opt_name, opt_type, max_iteration, knobs, baseline)
+        
         self.trials = hyperopt.Trials()
         self.config_pipe = Pipe()
         self.loss_pipe = Pipe()
@@ -44,7 +51,8 @@ class TPE(OptimizerUnit):
         ))
         self.process.start()
 
-    @normalFuncLog
+
+    @pylog.logit
     def __searchSpace(self):
         """Build hyperopt search space
         """
@@ -69,7 +77,7 @@ class TPE(OptimizerUnit):
 
         return search_space
 
-    @normalFuncLog
+    @pylog.logit
     def _observe(self, trail_point):
         """tuning target funciton
 
@@ -92,7 +100,7 @@ class TPE(OptimizerUnit):
         loss = self.loss_pipe[1].recv()
         return loss
 
-    @normalFuncLog
+    @pylog.logit
     def acquireImpl(self):
         """Acquire a candidate from this optimizer.
 
@@ -102,7 +110,7 @@ class TPE(OptimizerUnit):
         """
         return self.config_pipe[1].recv(), 1.0
 
-    @normalFuncLog
+    @pylog.logit
     def feedbackImpl(self, iteration: int, loss: float):
         """Feedback a benchmark score and candidate to this optimizer
 
@@ -113,7 +121,7 @@ class TPE(OptimizerUnit):
         """
         self.loss_pipe[0].send(loss)
 
-    @normalFuncLog
+    @pylog.logit
     def msg(self):
         """Get message of this optimizer.
 
