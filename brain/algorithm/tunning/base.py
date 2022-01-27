@@ -8,10 +8,10 @@ from copy import deepcopy
 from abc import ABCMeta, abstractmethod
 
 from brain.common.config import Config
-from brain.common.pylog import normalFuncLog
+from brain.common import pylog
 
 
-@normalFuncLog
+@pylog.logit
 def softmax(x):
     e_max = sum(np.exp(x))
     e_x = np.exp(x)
@@ -19,7 +19,7 @@ def softmax(x):
     return softmax_x
 
 
-@normalFuncLog
+@pylog.logit
 def _config2pts(config: dict, knobs: list):
     pts = []
     for param in knobs:
@@ -39,34 +39,6 @@ class OptimizerUnit(metaclass=ABCMeta):
     3. Calculating loss value with weight and strict punishment.
 
     Attribute:
-        opt_name (string) : Name and data folder of this optimizer.
-        knobs ([dict]) : 
-            Parameters list. e.g.
-            knobs = [
-                {
-                    "name"  : "Continuous_parameter",
-                    "range" : [0,100],
-                    "step"  : 1,
-                    "dtype" : "int",
-                },
-                {
-                    "name"   : "Discrete_parameter",
-                    "options": ['0','1'],
-                    "dtype"  : "int",
-                }
-            ]
-        dim (int) : Number of parameters.
-        bench (dict) : 
-            Configuration of benchmark.  e.g.
-            bench = { 
-                "Bench_1": {
-                    "negative": false,  # if nagative 
-                    "weight": 1.0,      # weight of the bench
-                    "strict":false,     # if strict
-                    "baseline":44000    # baseline of the bench
-                },
-            }
-
         H_config ([dict]) : 
             List of history config.  e.g.
             H_config = [
@@ -87,41 +59,70 @@ class OptimizerUnit(metaclass=ABCMeta):
         rho (float) : Increase rate of sigma.
 
     """
-
-    @normalFuncLog
-    def __init__(self, knobs: list, max_iteration: int, opt_name: str, opt_type: str):
+    @pylog.logit
+    def __init__(self, 
+                opt_name: str, 
+                opt_type: str, 
+                max_iteration: int, 
+                knobs: list, 
+                baseline: dict):
+        
         """Init optimizer instance, use tpe algorithm
 
         Args:
-            knobs (list) : tuning parameters
+            opt_name (string)   : name and data folder of this optimizer.
+            opt_type (string)   : 'tuning' or 'collect'
             max_iteration (int) : tuning max iteration
-            opt_name (string) : name and data folder of this optimizer.
+            knobs (list)        : tuning parameters.
+                [
+                    {
+                        "name"      : string, parameter name, e.g. 'vm.overcommit_memory'
+                        "domain"    : string, parameter domain, e.g. 'sysctl'
+                        "range"     : list,   parameter value range, given by MIN-value and MAX-value. If field 'range' is used, definition of 'options' and 'sequence' is invalid
+                        "options"   : list,   parameter value range, given by Value List. If field 'options' is used, definition of 'range' and 'sequence' is invalid
+                        "sequence"  : list,   parameter value range, given by Sequential Value List. If field 'sequence' is used, definition of 'range' and 'options' is invalid
+                        "step"      : int,    parameter value adjust step. Only take effect when field 'range' is used.
+                        "dtype"     : string, parameter data type.
+                        "base"	    : string, parameter baseline config value.
+                    },
+                ],
+            baseline(dict)          : benchmark config and baseline value.
+                {
+                    "benchmark_field_name" : benchmark field name, such as 'Throughput' and 'Latency'
+                    {
+                        "base"    : list, List of baseline benchmark runing result in each time.
+                        "negative"  : boolean, If negative is true, brain is supposed to reduce this benchmark field.
+                        "weight"    : float, Weight if this benchmark field. 
+                        "strict"    : boolean, If strict is true, worse result if this benchmark field is Unacceptable in any trade-off.
+                    },
+                }
         """
-        self.bench = None
+        self.bench = baseline
+        self.bench_size = len(self.bench.keys())
+        self.fx_weight = softmax([float(baseline[bench_name]['weight']) for bench_name in baseline.keys()])
+
         self.knobs = knobs
-
-        self.opt_type = opt_type
-        self.opt_name = "{}[{}]".format(
-            re.sub(r"\)", "]", re.sub(r"\(", "[", opt_name)), self.msg())
-        self.iteration = -1
-        self.bench_size = -1
-
-        self.max_iteration = max_iteration
         self.dim = len(self.knobs)
+        self.iteration = -1
+        self.max_iteration = max_iteration
 
         self.H_config = []
         self.H_budget = []
-
-        self.H_time = np.zeros(shape=(self.max_iteration, 4), dtype=float)
-        self.H_loss = np.zeros(shape=(self.max_iteration,), dtype=float)
+        self.H_time   = np.zeros(shape=(self.max_iteration, 4), dtype=float)
+        self.H_loss   = np.zeros(shape=(self.max_iteration,), dtype=float)
         self.H_points = np.zeros(shape=(0, self.dim), dtype=float)
-        self.folder_path = os.path.join(
-            Config.tunning_data_dir, self.opt_type, self.opt_name)
+        self.H_score  = np.zeros(shape=(self.max_iteration, self.bench_size), dtype=float)
+        self.H_loss_parts = np.zeros(shape=(self.max_iteration, self.bench_size), dtype=float)
+
+        self.opt_type = opt_type
+        self.opt_name = "{}[{}]".format(re.sub(r"\)", "]", re.sub(r"\(", "[", opt_name)), self.msg())
+        self.folder_path = os.path.join(Config.tunning_data_dir, self.opt_type, self.opt_name)
 
         self.sigma = 1
         self.rho = 1.005 ** (500 / self.max_iteration)
 
-    @normalFuncLog
+
+    @pylog.logit
     def _getLoss(self, bench_score: dict, iteration: int):
         """Calculate loss value by benchmark score
 
@@ -132,48 +133,39 @@ class OptimizerUnit(metaclass=ABCMeta):
         Args:
             bench_score (dict): Score dictionary of benchmark.  e.g.
                 bench_score = {
-                        "Bench_1": {
-                            "value":45000,      # score value
-                            "negative": false,  # if nagative 
-                            "weight": 1.0,      # weight of the bench
-                            "strict":false,     # if strict
-                            "baseline":44000    # baseline of the bench
-                        },
-                    }
+                    "Throughput": [45000,45010,49002],
+                    "latency99" : [99,98,100]
+                }
             iteration (int) : iteration determined the strict punishment weight.
 
         Return:
             loss_parts (list): Score list for each bench. Final loss is the sum of loss_parts.
         """
         loss_parts = []
-        weight = softmax([float(bench_score[bench_name]['weight'])
-                         for bench_name in self.bench.keys()])
-        for i, bench_name in enumerate(self.bench.keys()):
-            self.H_score[iteration][i] = float(
-                bench_score[bench_name]['value'])
+        for bench_index, bench_name in enumerate(self.bench.keys()):
+            # TODO: save and compare each value rather than average.
+            average_score = float(np.mean(bench_score[bench_name]))
+            self.H_score[iteration][bench_index] = average_score
+            baseline = float(np.mean(self.bench[bench_name]['base']))
 
-            if float(bench_score[bench_name]['baseline']) != 0:
-                baseline = float(bench_score[bench_name]['baseline'])
-            else:
-                baseline = np.sum(self.H_score, axis=0)[i] / iteration
+            # Relative loss
+            _loss = (average_score / baseline - 1) * self.fx_weight[bench_index] * 100
 
-            if baseline == 0:
-                _loss = 0.0
-            else:
-                _loss = float(bench_score[bench_name]['value']) / baseline - 1
-
-            if not bench_score[bench_name]['negative']:
-                _loss = - _loss
-
-            if bench_score[bench_name]['strict'] and _loss > 0:
+            # Reverse loss if bench is positive
+            if not self.bench[bench_name]['negative']:
+                _loss = -_loss
+            
+            # strict
+            if self.bench[bench_name]['strict'] and _loss > 0:
                 _loss = self.sigma * _loss**2 / 2
-            else:
-                _loss *= weight[i] * 100
+
             loss_parts.append(_loss)
+
         self.sigma = self.sigma * self.rho
         return loss_parts
 
-    @normalFuncLog
+
+    @pylog.logit
     def acquire(self):
         """Acquire a candidate and budget
 
@@ -232,6 +224,7 @@ class OptimizerUnit(metaclass=ABCMeta):
         self.H_time[self.iteration][1] = time.time()
         return self.iteration, candidate, budget
 
+
     @abstractmethod
     def acquireImpl(self):
         """Sub-class is expected to implement this method to return config and budget
@@ -248,7 +241,8 @@ class OptimizerUnit(metaclass=ABCMeta):
         """
         pass
 
-    @normalFuncLog
+
+    @pylog.logit
     def feedback(self, iteration: int, bench_score: dict):
         """Feedback a benchmark score.
 
@@ -257,16 +251,9 @@ class OptimizerUnit(metaclass=ABCMeta):
             bench_score (dict) : Benchmark running result score of each bench.
         """
         self.H_time[iteration][2] = time.time()
-        assert iteration < self.max_iteration
-        assert iteration == self.iteration
-
-        if self.bench is None:
-            self.bench = bench_score
-            self.bench_size = len(self.bench.keys())
-            self.H_score = np.zeros(
-                shape=(self.max_iteration, self.bench_size), dtype=float)
-            self.H_loss_parts = np.zeros(
-                shape=(self.max_iteration, self.bench_size), dtype=float)
+        if iteration != self.iteration:
+            raise Exception("iteration mismatch, iteration wanted = {}, iteration feedback = {}".format(
+                            self.iteration, iteration))
 
         loss_parts = self._getLoss(bench_score, iteration)
 
@@ -279,6 +266,7 @@ class OptimizerUnit(metaclass=ABCMeta):
         if self.iteration % 10 == 1 or self.iteration == self.max_iteration - 1:
             self.__savefile()
 
+
     @abstractmethod
     def feedbackImpl(self, iteration: int, loss: float):
         """Sub-class is expected to implement this method to receive loss value
@@ -289,6 +277,7 @@ class OptimizerUnit(metaclass=ABCMeta):
         """
         pass
 
+
     @abstractmethod
     def msg(self):
         """Get message of this optimizer.
@@ -298,7 +287,8 @@ class OptimizerUnit(metaclass=ABCMeta):
         """
         pass
 
-    @normalFuncLog
+
+    @pylog.logit
     def best(self):
         """Get bese candidate up to new
 
@@ -308,6 +298,7 @@ class OptimizerUnit(metaclass=ABCMeta):
         H_loss = self.H_loss[:len(self.H_config)]
         best_iteration = H_loss.tolist().index(min(H_loss))
 
+        print(self.H_score)
         best_bench = deepcopy(self.bench)
         for i, bench_name in enumerate(self.bench.keys()):
             best_bench[bench_name]['value'] = self.H_score[best_iteration][i]
@@ -319,7 +310,8 @@ class OptimizerUnit(metaclass=ABCMeta):
 
         return best_iteration, best_candidate, best_bench
 
-    @normalFuncLog
+    
+    @pylog.logit
     def __savefile(self):
         if not os.path.exists(self.folder_path):
             os.makedirs(self.folder_path)

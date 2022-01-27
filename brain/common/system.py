@@ -3,10 +3,9 @@ import subprocess
 import traceback
 
 from tornado.httpclient import HTTPRequest, AsyncHTTPClient, HTTPError
-from brain.common.pylog import functionLog
+from brain.common import pylog
 
-
-@functionLog
+@pylog.logit
 def sysCommand(command: str, cwd: str = "./"):
     '''Run system command with subprocess.run and return result
     '''

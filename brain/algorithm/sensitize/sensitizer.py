@@ -4,11 +4,11 @@ from sklearn.linear_model import ElasticNet
 from sklearn.model_selection import GridSearchCV, KFold, train_test_split
 from sklearn.metrics import mean_absolute_percentage_error
 
-from brain.common.pylog import normalFuncLog
+from brain.common import pylog
 
 
 class Analyzer(object):
-    @normalFuncLog
+    @pylog.logit
     def __init__(self,
                  params,
                  seed=None,
@@ -36,7 +36,7 @@ class Analyzer(object):
         scores = np.where(np.abs(scores) > epsilon, scores, epsilon)
         return scores / np.abs(scores).sum()
 
-    @normalFuncLog
+    @pylog.logit
     def explain_linear(self, X_train, y_train, X_test, y_test):
         """Implement linear explainer
         Args:
@@ -65,7 +65,7 @@ class Analyzer(object):
             y_true, y_pred)
         return self.normalize_scores(model.coef_)
 
-    @normalFuncLog
+    @pylog.logit
     def run(self, X, y):
         """Implement explaining method with linear models and their coefficients as weights
         Args:

@@ -1,5 +1,4 @@
 import json
-
 from tornado.web import RequestHandler
 
 from brain.common.system import HTTPPost
@@ -9,10 +8,9 @@ from brain.algorithm.sensitize.sensitize import sensitize
 class sensitizeHandler(RequestHandler):
     async def post(self):
         request_data = json.loads(self.request.body)
-
         try:
-            trials = int(request_data['trials'])
-            resp_ip = request_data['resp_ip']
+            trials    = int(request_data['trials'])
+            resp_ip   = request_data['resp_ip']
             data_name = request_data['data']
             resp_port = request_data['resp_port']
 
@@ -33,14 +31,19 @@ class sensitizeHandler(RequestHandler):
             self.set_status(200)
             self.finish()
 
-            suc, res = sensitize(data_name, trials)
-
-            if suc:
-                response_data = {
-                    "suc": True, "result": res, "msg": ""}
+            try:
+                suc, res = sensitize(data_name, trials)
+            
+            except Exception as e:
+                response_data = {"suc": False, "result": {}, "msg": "{}".format(e)}
+            
             else:
-                response_data = {
-                    "suc": False, "result": {}, "msg": res}
+                if suc:
+                    response_data = {
+                        "suc": True, "result": res, "msg": ""}
+                else:
+                    response_data = {
+                        "suc": False, "result": {}, "msg": res}
 
             await HTTPPost(
                 api="sensitize_result",

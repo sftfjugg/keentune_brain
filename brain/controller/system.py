@@ -11,8 +11,8 @@ class dataListHandler(RequestHandler):
     def get(self):
         data_list = tools.dataList()
         resp_data = {
-            "suc": True,
-            "data": data_list
+            "suc"   : True,
+            "data"  : data_list
         }
         self.write(json.dumps(resp_data))
         self.set_status(200)

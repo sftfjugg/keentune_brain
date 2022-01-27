@@ -10,10 +10,10 @@ from brain.algorithm.sensitize.sensitizer import Analyzer
 
 from brain.common import tools
 from brain.common.config import Config
-from brain.common.pylog import normalFuncLog, functionLog
+from brain.common import pylog
 
 
-@normalFuncLog
+@pylog.logit
 def _parseSenstizeResult(sensitize_results, knobs):
     """Transfor sensitize_weight dict to response result
 
@@ -35,7 +35,7 @@ def _parseSenstizeResult(sensitize_results, knobs):
     return [knobs_selected[sorted_indice.index(i)] for i in range(len(params))]
 
 
-@normalFuncLog
+@pylog.logit
 def _sensitizeSelect(sensitize_weight, topN=20, confidence_threshold=0.9):
     """Recommend sensitivity results
 
@@ -62,14 +62,17 @@ def _sensitizeSelect(sensitize_weight, topN=20, confidence_threshold=0.9):
     weights_sorted = [weights[i] for i in sorted_indice]
 
     weights_cumsum = np.cumsum(np.array(weights_sorted))
-    index = np.where(weights_cumsum >= confidence_threshold)[0][0]
+    try:
+        index = np.where(weights_cumsum >= confidence_threshold)[0][0]
+    except IndexError as e:
+        index = 0
     k = topN if topN <= index else index + 1
     confidence = weights_cumsum[k - 1]
 
     return (params_sorted[:k], weights_sorted[:k], confidence)
 
 
-@normalFuncLog
+@pylog.logit
 def _loadData(data_path):
     """Load and prepare data for analyzing
 
@@ -98,7 +101,7 @@ def _loadData(data_path):
     return X, y, params
 
 
-@normalFuncLog
+@pylog.logit
 def _getStability(Z):
     """Compute stability according
 
@@ -128,7 +131,7 @@ def _getStability(Z):
     return stable
 
 
-@normalFuncLog
+@pylog.logit
 def _computeStability(log, params, plot=True):
     """Compute two types of stability scores
 
@@ -198,7 +201,7 @@ def _computeStability(log, params, plot=True):
         params_order_file, 'wb+'))
 
 
-@normalFuncLog
+@pylog.logit
 def _sensitizeImpl(data_path, trials=0):
     """Implementation of sensitive parameter identification algorithm
 
@@ -219,7 +222,7 @@ def _sensitizeImpl(data_path, trials=0):
     return True, _parseSenstizeResult(sensitize_result, knobs)
 
 
-@normalFuncLog
+@pylog.logit
 def _sensitizeRun(X, y, params, learner="linear", trials=0, verbose=1):
     """Implementation of sensitive parameter identification algorithm
 
@@ -274,7 +277,7 @@ def _sensitizeRun(X, y, params, learner="linear", trials=0, verbose=1):
     return sensitize_result
 
 
-@functionLog
+@pylog.logit
 def _checkFile(data_path):
     if not os.path.exists(os.path.join(data_path, "bench.pkl")):
         return False, "{} do not exits".format(os.path.join(data_path, "bench.pkl"))
@@ -288,7 +291,7 @@ def _checkFile(data_path):
     return True, ""
 
 
-@functionLog
+@pylog.logit
 def _getLatestData():
     """Get latest numpy data.
 
@@ -314,7 +317,7 @@ def _getLatestData():
     return True, latest_data_folder_path
 
 
-@functionLog
+@pylog.logit
 def getDataPath(name: str):
     """Get numpy data path by data name.
 
@@ -342,7 +345,7 @@ def getDataPath(name: str):
     return False, ""
 
 
-@functionLog
+@pylog.logit
 def sensitize(data_name="", trials=0):
     suc, data_path = getDataPath(data_name)
     if not suc:

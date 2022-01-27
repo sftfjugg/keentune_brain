@@ -1,20 +1,20 @@
 import numpy as np
 
 from brain.algorithm.tunning.base import OptimizerUnit
-from brain.common.pylog import normalFuncLog
+from brain.common import pylog
 
 
 class Random(OptimizerUnit):
-    @normalFuncLog
+    @pylog.logit
     def __init__(self,
-                 knobs: list,
-                 max_iteration: int,
                  opt_name: str,
-                 opt_type: str):
-        super(Random, self).__init__(knobs, max_iteration, opt_name, opt_type)
-#
+                 opt_type: str,
+                 max_iteration: int,
+                 knobs: list,
+                 baseline: dict):
+        super(Random, self).__init__(opt_name, opt_type, max_iteration, knobs, baseline)
 
-    @normalFuncLog
+    @pylog.logit
     def acquireImpl(self):
         config = {}
         for param in self.knobs:
@@ -32,10 +32,10 @@ class Random(OptimizerUnit):
 
         return config, 1.0
 
-    @normalFuncLog
+    @pylog.logit
     def feedbackImpl(self, iteration: int, loss: float):
         pass
 
-    @normalFuncLog
+    @pylog.logit
     def msg(self):
         return "Random"
