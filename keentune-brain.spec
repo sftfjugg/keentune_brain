@@ -39,7 +39,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %postun
 CONF_DIR=%{_sysconfdir}/keentune/conf
-if [ "$(ls -A $CONF_DIR)"="" ]; then
+if [ "$(ls -A $CONF_DIR)" = "" ]; then
         rm -rf $CONF_DIR
 fi
 
