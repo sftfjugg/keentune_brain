@@ -61,3 +61,7 @@ class Config:
 
     if not os.path.exists(sensi_data_dir):
         os.makedirs(sensi_data_dir)
+
+    log_dir = os.path.dirname(logfile_path)
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
