@@ -30,6 +30,9 @@ class Random(OptimizerUnit):
                 config[param['name']] = param['sequence'][np.random.randint(
                     0, param['sequence'].__len__())]
 
+            else:
+                raise Exception("unsupported parameter type!")
+                
         return config, 1.0
 
     @pylog.logit

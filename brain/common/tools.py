@@ -23,9 +23,18 @@ def normalizePts(pts: np.array, knobs: list):
             if param.__contains__('options'):
                 nor_pts[_iter][index] = pts[_iter][index] / \
                     (len(param['options']) - 1)
-            else:
+
+            elif param.__contains__('sequence'):
+                nor_pts[_iter][index] = pts[_iter][index] / \
+                    (len(param['sequence']) - 1)
+
+            elif param.__contains__('range'):
                 nor_pts[_iter][index] = (
                     pts[_iter][index] - param['range'][0]) / (param['range'][1] - param['range'][0])
+
+            else:
+                raise Exception("unsupported parameter type!")
+            
     return nor_pts
 
 
