@@ -62,6 +62,10 @@ class TPE(OptimizerUnit):
                 search_space[param['name']] = hyperopt.hp.choice(
                     param['name'], param['options'])
 
+            elif param.__contains__('sequence'):
+                search_space[param['name']] = hyperopt.hp.choice(
+                    param['name'], param['sequence'])
+
             elif param.__contains__('range') and param['dtype'] == 'int':
                 step = param['step'] if param.__contains__('step') else 1
                 while (param['range'][1] - param['range'][0]) / step >= AlgoConfig.max_search_space:
@@ -74,6 +78,9 @@ class TPE(OptimizerUnit):
             elif param.__contains__('range') and param['dtype'] == 'float':
                 search_space[param['name']] = hyperopt.hp.uniform(
                     param['name'], param['range'][0], param['range'][1])
+
+            else:
+                raise Exception("unsupported parameter type!")
 
         return search_space
 

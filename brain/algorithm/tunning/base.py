@@ -26,8 +26,16 @@ def _config2pts(config: dict, knobs: list):
         _value = config[param['name']]
         if param.__contains__('options'):
             pts.append(int(param['options'].index(_value)))
-        else:
+
+        elif param.__contains__("sequence"):
+            pts.append(int(param['sequence'].index(_value)))
+
+        elif param.__contains__("range"):
             pts.append(float(_value))
+
+        else:
+            raise Exception("unsupported parameter type!")
+
     return np.array([pts])
 
 

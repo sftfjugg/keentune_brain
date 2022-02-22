@@ -82,6 +82,12 @@ class Problem(OptimizationProblem):
 
             elif param.__contains__('options'):
                 options = param['options']
+            
+            elif param.__contains__('sequence'):
+                options = param['sequence']
+
+            else:
+                raise Exception("unsupported parameter type!")
 
             self.search_space[param['name']] = options
             self.lb[index], self.ub[index] = 0, len(options) - 1
