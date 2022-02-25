@@ -252,6 +252,7 @@ def _sensitizeRun(X, y, params, learner="xgboost", explainer="shap", epoch=50, t
     if trials > 1:
         seeds = [int(i) for i in list(np.random.randint(100, size=trials))]
     else:
+        trials = 1
         seeds = [seed]
 
     # use_xx flag controls the use of specific explaining algorithms (univariate, shap).
