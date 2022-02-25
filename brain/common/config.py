@@ -24,6 +24,13 @@ class AlgoConfig:
     hord_surrogate = conf['hord']['surrogate']
     hord_strategy = conf['hord']['strategy']
 
+    # Sensitize
+    sensi_explainer = conf['sensi']['explainer']
+    sensi_trials    = int(conf['sensi']['trials'])
+    sensi_epoch     = int(conf['sensi']['epoch'])
+    sensi_topN    = int(conf['sensi']['topN'])
+    sensi_threshold     = float(conf['sensi']['threshold'])
+
 
 class Config:
     keentune_home = conf['home']['keentune_home']

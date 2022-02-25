@@ -8,6 +8,12 @@ from brain.algorithm.sensitize.sensitize import sensitize
 class sensitizeHandler(RequestHandler):
     async def post(self):
         request_data = json.loads(self.request.body)
+        # load explainer and epoch from config
+        explainer = AlgoConfig.sensi_explainer
+        epoch = AlgoConfig.sensi_epoch
+        topN = AlgoConfig.sensi_topN
+        threshold = AlgoConfig.sensi_threshold
+        
         try:
             trials    = int(request_data['trials'])
             resp_ip   = request_data['resp_ip']

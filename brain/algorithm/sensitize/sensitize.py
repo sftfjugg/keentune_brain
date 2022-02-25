@@ -36,7 +36,7 @@ def _parseSenstizeResult(sensitize_results, knobs):
 
 
 @pylog.logit
-def _sensitizeSelect(sensitize_weight, topN=20, confidence_threshold=0.9):
+def _sensitizeSelect(sensitize_weight, topN=10, confidence_threshold=0.9):
     """Recommend sensitivity results
 
         Args:
@@ -49,6 +49,14 @@ def _sensitizeSelect(sensitize_weight, topN=20, confidence_threshold=0.9):
             weights_sorted (list): a sorted list of the sensitivity values of recommended parameters,
             confidence_interal (float): a scaler showing the confidence of recommended parameters
     """
+    # check topN input value
+    if topN is None or topN <= 0:
+        topN = 10
+
+    # check confidence_threshold value
+    if confidence_threshold is None or confidence_threshold <= 0.0 or confidence_threshold >= 1.0:
+        confidence_threshold = 0.9
+
     params = []
     weights = []
     # extract parameter names and weights
@@ -59,7 +67,8 @@ def _sensitizeSelect(sensitize_weight, topN=20, confidence_threshold=0.9):
     # sort weights descendingly
     sorted_indice = np.argsort(weights)[::-1]
     params_sorted = [params[i] for i in sorted_indice]
-    weights_sorted = [weights[i] for i in sorted_indice]
+    # use absolute values to sort
+    weights_sorted = np.abs([weights[i] for i in sorted_indice])
 
     weights_cumsum = np.cumsum(np.array(weights_sorted))
     try:
@@ -68,7 +77,8 @@ def _sensitizeSelect(sensitize_weight, topN=20, confidence_threshold=0.9):
         index = 0
     k = topN if topN <= index else index + 1
     confidence = weights_cumsum[k - 1]
-
+    # use original values to output
+    weights_sorted = np.array([weights[i] for i in sorted_indice])
     return (params_sorted[:k], weights_sorted[:k], confidence)
 
 
@@ -120,8 +130,7 @@ def _getStability(Z):
     stable = np.multiply(Z_mean, 1 - Z_mean).mean()
     # get expected value of mask as normalizing facotor
     mask_expected = Z_mean.sum()
-    normalize_factor = (mask_expected / n_params) * \
-        (1 - mask_expected / n_params)
+    normalize_factor = (mask_expected / n_params) * (1 - mask_expected / n_params)
 
     # compute stable scores
     stable = empirical_factor * stable / normalize_factor
@@ -132,7 +141,7 @@ def _getStability(Z):
 
 
 @pylog.logit
-def _computeStability(log, params, plot=True):
+def _computeStability(scores, params):
     """Compute two types of stability scores
 
     Args:
@@ -147,13 +156,11 @@ def _computeStability(log, params, plot=True):
                  results = {"stable_I": np.zeros(shape=(number of parameters, )),
                             "stable_II": np.zeros(shape=(number of parameters, ))}
     """
-    n_trials = len(log.keys())
-    n_params = len(params)
+    n_trials, n_params = scores.shape
     # find sorted indice of params
-    params_order = np.zeros(shape=(n_trials, n_params), dtype=np.float16)
+    params_order = np.zeros(shape=(n_trials, n_params))
     for k in range(n_trials):
-        params_sorted = [params[i] for i in list(
-            np.abs(log[k]['sensitivity']).argsort()[::-1])]
+        params_sorted = [params[i] for i in np.abs(scores[k]).argsort()[::-1]]
         for j, p in enumerate(params):
             params_order[k, j] = params_sorted.index(p)
 
@@ -176,15 +183,13 @@ def _computeStability(log, params, plot=True):
             if k == 0:
                 selected_params = set([params[i] for i in topK[0]])
             else:
-                selected_params = selected_params.intersection(
-                    set([params[i] for i in topK[0]]))
+                selected_params = selected_params.intersection(set([params[i] for i in topK[0]]))
 
         results['stable_I'][i] = _getStability(Z[i]) if n_trials > 1 else 1.0
         results['stable_II'][i] = float(len(selected_params)) / n
 
     # directories to save stable scores and parameter orders box-plot
-    dump_folder_path = os.path.join(
-        Config.sensi_data_dir, datetime.now().strftime("%y-%m-%d-%H-%M-%S"))
+    dump_folder_path = os.path.join('data', datetime.now().strftime("%y-%m-%d-%H-%M-%S"))
 
     if not os.path.exists(dump_folder_path):
         os.makedirs(dump_folder_path)
@@ -197,12 +202,11 @@ def _computeStability(log, params, plot=True):
     params_order_sorted = [params[i] for i in params_order_median_indice]
 
     pickle.dump(params_order_sorted, open(params_name_file, 'wb+'))
-    pickle.dump(params_order[:, params_order_median_indice], open(
-        params_order_file, 'wb+'))
+    pickle.dump(params_order[:, params_order_median_indice], open(params_order_file, 'wb+'))
 
 
 @pylog.logit
-def _sensitizeImpl(data_path, trials=0):
+def _sensitizeImpl(data_path, explainer='shap', trials=0, epoch=50, topN=10, threshold=0.9):
     """Implementation of sensitive parameter identification algorithm
 
     Args:
@@ -213,8 +217,12 @@ def _sensitizeImpl(data_path, trials=0):
                           e.g., sensitize_result = {"parameter_name": float value}
     """
     X, y, params = _loadData(data_path)
-    sensitize_result = _sensitizeRun(X=X, y=y, params=params, trials=trials)
-    sensitize_result = _sensitizeSelect(sensitize_result)
+    sensitize_result = _sensitizeRun(X=X, y=y, params=params, 
+                                    learner="xgboost", explainer=explainer, 
+                                    epoch=epoch, trials=trials)
+    sensitize_result = _sensitizeSelect(sensitize_weight=sensitize_result, 
+                                        topN=topN,
+                                        confidence_threshold=threshold)
 
     sleep(10)
     knobs_path = os.path.join(data_path, "knobs.pkl")
@@ -223,14 +231,14 @@ def _sensitizeImpl(data_path, trials=0):
 
 
 @pylog.logit
-def _sensitizeRun(X, y, params, learner="linear", trials=0, verbose=1):
+def _sensitizeRun(X, y, params, learner="xgboost", explainer="shap", epoch=50, trials=0, verbose=1):
     """Implementation of sensitive parameter identification algorithm
 
     Args:
         X (numpy array of shape (n,m)): training data
         y (numpy array of shape (n,)): training label
         params (list of strings): a list of parameter names
-        learner (string) : name of learner, only linear for now
+        learner (string) : name of learner, only xgboost for now
         trials (int): number of trails to run for get average sensitivity scores from multiple trials.
 
     Return:
@@ -246,35 +254,68 @@ def _sensitizeRun(X, y, params, learner="linear", trials=0, verbose=1):
     else:
         seeds = [seed]
 
+    # use_xx flag controls the use of specific explaining algorithms (univariate, shap).
+    # To use multiple explaining algorithms at the same time, edit the flags here.
+    # Future consider control these flags through sensitize interface
+    (use_shap, use_univariate) = (True, True) if (explainer=='shap') or (explainer=='explain') else (False, False)
+    use_univariate = True if (explainer=='univariate') or (use_univariate==True) else False
+    
+    # if none specified, use shap as default
+    if not (use_univariate or use_shap):
+        use_shap, use_univariate = True, True
+        learner, explainer = "xgboost", "shap"
+
+    if epoch is None or epoch <= 1:
+        epoch = 50
+
+
     log = {}
-    scores = np.zeros((len(seeds), len(params)))
+    sensi = np.zeros((trials, len(params)))
+    log['learner'] = learner
+    log['explainer'] = explainer
+    log['parameters'] = params
+    
     for i, s in enumerate(seeds):
         # initialize sensitier
-        sensitizer = Analyzer(params=params, seed=s, learner=learner)
+        sensitizer = Analyzer(params=params,
+                              seed=s,
+                              use_univariate=use_univariate,
+                              use_shap=use_shap,
+                              learner_name=learner,
+                              explainer_name=explainer,
+                              epoch=epoch)
         # run sensitizer with collected data
         sensitizer.run(X, y)
-        scores[i] = sensitizer.sensitivity
-
         if verbose > 0:
             log[i] = {}
             log[i]['seed'] = s
-            log[i]['learner'] = learner
-            log[i]['linear_performance'] = sensitizer.performance_linear
-            log[i]['features'] = params
-            log[i]['linear_sensitivity'] = sensitizer.sensitivity_set['linear']
-            log[i]['sensitivity'] = sensitizer.sensitivity
+            for k in ['univariate','shap','aggregated']:
+                if k in sensitizer.learner_performance.keys():
+                    log[i]['{}_performance'.format(k)] = sensitizer.learner_performance[k]
+                    pylog.logger.info("trial:{}, {} performance: {}".format(i, k, sensitizer.learner_performance[k]))
+                    print("trial:{}, {} performance: {}".format(i, k, sensitizer.learner_performance[k]))
+                if k in sensitizer.sensi.keys():
+                    log[i]['{}_sensitivity'] = sensitizer.sensi[k]
+                    pylog.logger.info("trial:{}, {} sensitivity: {}".format(i, k, sensitizer.sensi[k]))
+                    print("trial:{}, {} sensitivity: {}".format(i, k, sensitizer.sensi[k]))
+
+        if explainer not in ['univariate']:
+            sensi[i] = sensitizer.sensi['aggregated']
+        else:
+            sensi[i] = sensitizer.sensi[explainer]
 
     if verbose > 0:
-        _computeStability(log=log, params=params)
+        _computeStability(scores=sensi, params=params)
 
     # compute median of sensitivity scores
-    sensitivity_median = np.median(scores, axis=0)
+    sensi_mean = np.mean(sensi, axis=0)
+    sensi_mean = sensi_mean / np.abs(sensi_mean).sum()
     # sort sensitivity scores in descending order
-    sensitize_result = {}
+    result = {}
     for i in range(len(params)):
-        sensitize_result[params[i]] = sensitivity_median[i]
+        result[params[i]] = sensi_mean[i]
     # return sorted(sensitize_result.items(), key=lambda d: d[1], reverse=True)
-    return sensitize_result
+    return result
 
 
 @pylog.logit
@@ -346,7 +387,8 @@ def getDataPath(name: str):
 
 
 @pylog.logit
-def sensitize(data_name="", trials=0):
+def sensitize(data_name="", explainer='shap', trials=0, epoch=50, topN=10, threshold=0.9):
+    # supporting four methods: univariate, shap
     suc, data_path = getDataPath(data_name)
     if not suc:
         return False, "Can not find data: {}".format(data_name)
@@ -355,7 +397,7 @@ def sensitize(data_name="", trials=0):
     if not suc:
         return False, "Check numpy data failed: {}".format(msg)
 
-    suc, sensitize_result = _sensitizeImpl(data_path, trials)
+    suc, sensitize_result = _sensitizeImpl(data_path, explainer, trials, epoch, topN, threshold)
 
     if not suc:
         return False, "Get sensitive parameter failed: {}".format(sensitize_result)
