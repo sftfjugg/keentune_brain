@@ -3,7 +3,7 @@ from tornado.web import RequestHandler
 
 from brain.common.system import HTTPPost
 from brain.algorithm.sensitize.sensitize import sensitize
-
+from brain.common.config import AlgoConfig
 
 class sensitizeHandler(RequestHandler):
     async def post(self):
@@ -13,7 +13,7 @@ class sensitizeHandler(RequestHandler):
         epoch = AlgoConfig.sensi_epoch
         topN = AlgoConfig.sensi_topN
         threshold = AlgoConfig.sensi_threshold
-        
+
         try:
             trials    = int(request_data['trials'])
             resp_ip   = request_data['resp_ip']
