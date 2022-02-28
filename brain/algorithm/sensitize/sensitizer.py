@@ -2,10 +2,7 @@ import numpy as np
 import random as python_random
 
 from copy import deepcopy
-from xgboost import XGBRegressor
-from shap import KernelExplainer
-from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, KFold, train_test_split
-from sklearn.feature_selection import SelectKBest, mutual_info_regression
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_percentage_error
 
 from brain.common import pylog
@@ -16,26 +13,30 @@ class Learner(object):
         """Initializer
            Args: name (string): name of learning model, only support xgboost for now
         """
-        self.seed = 42
-        self.config = {
-            "xgboost": {"model": XGBRegressor(objective='reg:squarederror', verbosity=1, random_state=self.seed),
-                        "params": {'n_estimators': [50, 100, 200],
-                                   'learning_rate': [0.01, 0.1, 0.2, 0.3],
-                                   'max_depth': range(3, 10),
-                                   'colsample_bytree': [0.6, 0.8, 1.0],
-                                   #'gamma': [0.5, 1, 1.5, 2, 5],
-                                   'reg_alpha':[0.1, 1.0, 25.0, 100.0],
-                                   'reg_lambda':[0.1, 1.0, 25.0, 100.0],
-                                   'min_child_weight': [1, 5, 10],
-                                   'subsample': [0.6, 0.8, 1.0]}}
-                    }
-
         self.name = name
-        # learning model before fitting
-        self.actor = self.config[name]['model']
-        # auto tuning parameters for the learning model
-        self.params = self.config[name]['params']
+        self.seed = 42
         self.epoch = epoch
+        # learning model before fitting
+        if name=="xgboost":
+            try:
+                from xgboost import XGBRegressor
+            except ImportError:
+                raise ImportError('XGBRegressor is not available')
+
+            # learning model before fitting
+            self.actor = XGBRegressor(objective='reg:squarederror', verbosity=1, random_state=self.seed)
+            # auto tuning parameters for the learning model
+            self.params = {'n_estimators': [50, 100, 200],
+                           'learning_rate': [0.01, 0.1, 0.2, 0.3],
+                           'max_depth': range(3, 10),
+                           'colsample_bytree': [0.6, 0.8, 1.0],
+                           'reg_alpha':[0.1, 1.0, 25.0, 100.0],
+                           'reg_lambda':[0.1, 1.0, 25.0, 100.0],
+                           'min_child_weight': [1, 5, 10],
+                           'subsample': [0.6, 0.8, 1.0]}
+        else:
+            pylog.logger.info("Support xgboost for now, current learner {} is not supported".format(self.name))
+            raise AttributeError
 
     @pylog.logit
     def run(self, X_train, y_train, X_test, y_test):
@@ -46,6 +47,7 @@ class Learner(object):
                 X_test (numpy array): test data
                 y_test (numpy arary): test label for regression
         """
+        from sklearn.model_selection import RandomizedSearchCV,KFold
         scoring = "neg_mean_absolute_error"  # "neg_mean_absolute_percentage_error"
         scoring_func = mean_absolute_percentage_error
         kfold = KFold(n_splits=5, shuffle=True, random_state=self.seed)
@@ -81,6 +83,10 @@ class Explainer(object):
                 sensi values (numpy array)
         """
         if (self.name == "shap") or (self.name is None):
+            try:
+                from shap import KernelExplainer
+            except ImportError:
+                raise ImportError('shap.KernelExplainer is not available')
             # sample data for computing shaply values
             background = np.reshape(base_x, (1, len(base_x)))  #shap.kmeans(X, 10) if X.shape[0]>10 else shap.kmeans(X, X.shape[0])
             # use kernel explainer, which compute shaply values by kernel approximation,
@@ -168,6 +174,7 @@ class Analyzer(object):
             normalized sensitivity scores
         """
         # use mutual info regression since it can capture pair-wise linear and nonlinear relation
+        from sklearn.feature_selection import SelectKBest, mutual_info_regression
         score_func = mutual_info_regression
         model = SelectKBest(score_func, k="all")
         model.fit(X, y)
