@@ -16,6 +16,7 @@ class Learner(object):
         self.name = name
         self.seed = 42
         self.epoch = epoch
+        self.model = None
         # learning model before fitting
         if name=="xgboost":
             try:
@@ -150,6 +151,12 @@ class Analyzer(object):
         self.learner_name = learner_name
         self.explainer_name = explainer_name
         self.epoch = epoch
+        self.sensi = {}
+        self.learner_performance = {}
+        if self.use_nonlinear:
+            # use nonlinear interpreter
+            # shap needs a reference point as the baseline for explanation, initialize here
+            self.base_x = np.zeros(len(params))
 
     @staticmethod
     def remove_null(data):
@@ -218,9 +225,6 @@ class Analyzer(object):
         """
         # split training and testing data for building learning and explaining models
         X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.75, random_state=self.seed)
-
-        self.sensi = {}
-        self.learner_performance = {}
 
         if self.use_shap:
             # use nonlinear interpreter
