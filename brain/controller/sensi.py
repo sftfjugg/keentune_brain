@@ -38,7 +38,7 @@ class sensitizeHandler(RequestHandler):
             self.finish()
 
             try:
-                suc, res = sensitize(data_name, trials)
+                suc, res = sensitize(data_name, explainer, trials, epoch, topN, threshold)
             
             except Exception as e:
                 response_data = {"suc": False, "result": {}, "msg": "{}".format(e)}
