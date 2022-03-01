@@ -360,7 +360,7 @@ def _getLatestData():
 
 
 @pylog.logit
-def getDataPath(name: str):
+def getDataPath(name):
     """Get numpy data path by data name.
 
     Get latest numpy data if data name is empty.
