@@ -24,7 +24,7 @@ class Learner(object):
                 raise ImportError('XGBRegressor is not available')
 
             # learning model before fitting
-            self.actor = XGBRegressor(objective='reg:squarederror', verbosity=1, random_state=self.seed)
+            self.actor = XGBRegressor(objective='reg:linear', verbosity=1, random_state=self.seed)
             # auto tuning parameters for the learning model
             self.params = {'n_estimators': [50, 100, 200],
                            'learning_rate': [0.01, 0.1, 0.2, 0.3],
