@@ -181,9 +181,9 @@ def _computeStability(scores, params):
             topK = np.where(params_order[k] < n)
             Z[i, k, topK] = 1
             if k == 0:
-                selected_params = set([params[i] for i in topK[0]])
+                selected_params = set([params[j] for j in topK[0]])
             else:
-                selected_params = selected_params.intersection(set([params[i] for i in topK[0]]))
+                selected_params = selected_params.intersection(set([params[j] for j in topK[0]]))
 
         results['stable_I'][i] = _getStability(Z[i]) if n_trials > 1 else 1.0
         results['stable_II'][i] = float(len(selected_params)) / n
