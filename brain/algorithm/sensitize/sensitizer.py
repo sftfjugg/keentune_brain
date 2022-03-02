@@ -153,7 +153,7 @@ class Analyzer(object):
         self.epoch = epoch
         self.sensi = {}
         self.learner_performance = {}
-        if self.use_nonlinear:
+        if self.use_shap:
             # use nonlinear interpreter
             # shap needs a reference point as the baseline for explanation, initialize here
             self.base_x = np.zeros(len(params))
