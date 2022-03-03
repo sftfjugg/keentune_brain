@@ -1,8 +1,4 @@
-import json
 import subprocess
-import traceback
-
-from tornado.httpclient import HTTPRequest, AsyncHTTPClient, HTTPError
 from brain.common import pylog
 
 @pylog.logit
@@ -26,37 +22,3 @@ def sysCommand(command: str, cwd: str = "./"):
         return suc, error
     else:
         return suc, out
-
-
-async def HTTPPost(api: str, ip: str, port: str, data: dict):
-    url = 'http://{ip}:{port}/{api}'.format(
-        ip=ip,
-        port=port,
-        api=api,
-    )
-    try:
-        http_client = AsyncHTTPClient()
-
-        response = await http_client.fetch(HTTPRequest(
-            url=url,
-            method="POST",
-            body=json.dumps(data),
-        ))
-
-    except RuntimeError as e:
-        return False, "{},{}".format(e, traceback.format_exc())
-
-    except HTTPError as e:
-        return False, "{},{}".format(e, traceback.format_exc())
-
-    except Exception as e:
-        return False, "{},{}".format(e, traceback.format_exc())
-
-    else:
-        if response.code == 200:
-            return True, ""
-        else:
-            return False, response.reason
-
-    finally:
-        http_client.close()
