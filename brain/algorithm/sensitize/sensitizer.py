@@ -129,6 +129,7 @@ class Analyzer(object):
     def __init__(self,
                  params,
                  seed=None,
+                 use_lasso=False,
                  use_univariate=True,
                  use_shap=True,
                  learner_name='xgboost',
@@ -146,6 +147,7 @@ class Analyzer(object):
         """
         self.params = params
         self.seed = seed if seed is not None else 42
+        self.use_lasso = use_lasso
         self.use_univariate = use_univariate
         self.use_shap = use_shap
         self.learner_name = learner_name
@@ -170,6 +172,29 @@ class Analyzer(object):
         data[np.isnan(data)] = epsilon
         data = np.where(np.abs(data)>epsilon, data, epsilon)
         return data
+    
+    @pylog.logit
+    def explain_lasso(self, X_train, y_train, X_test, y_test):
+        """Implement linear explainer with Lasso
+        Args:
+            X_train (numpy array): training data
+            y_train (numpy arary): training label for regression
+            X_test (numpy array): test data
+            y_test (numpy arary): test label for regression
+        Return:
+            normalized sensitivity scores
+        """
+        from sklearn.linear_model import LassoCV, Lasso
+        lassocv = LassoCV(alphas=None, cv=5, max_iter=100000, normalize=True)
+        lassocv.fit(X_train, y_train)
+        model = Lasso(max_iter=10000, normalize=True)
+        model.set_params(alpha=lassocv.alpha_)
+        model.fit(X_train, y_train)
+        y_true, y_pred = y_test.ravel(), model.predict(X_test)
+        performance = mean_absolute_percentage_error(y_true, y_pred)
+        sensi = self.remove_null(model.coef_)
+        sensi = sensi / np.sum(np.abs(sensi))
+        return performance,sensi
 
     @pylog.logit
     def explain_univariate(self, X, y):
@@ -226,6 +251,10 @@ class Analyzer(object):
         # split training and testing data for building learning and explaining models
         X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.75, random_state=self.seed)
 
+        if self.use_lasso:
+            # use linear interpreter (default with Lasso)
+            self.learner_performance['lasso'], self.sensi['lasso'] = self.explain_lasso(X_train, y_train, X_test, y_test)
+
         if self.use_shap:
             # use nonlinear interpreter
             # shap needs a reference point as the baseline for explanation
@@ -251,5 +280,5 @@ class Analyzer(object):
             self.sensi['univariate'] = np.abs(self.sensi['univariate']) / np.sum(np.abs(self.sensi['univariate']))
 
         if len(self.sensi.keys()) <= 0:
-            pylog.logger.info("Support univariate, shap, none is selected")
+            pylog.logger.info("Support univariate, lasso, shap, none is selected")
             raise AttributeError

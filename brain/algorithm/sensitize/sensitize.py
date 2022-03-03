@@ -255,14 +255,15 @@ def _sensitizeRun(X, y, params, learner="xgboost", explainer="shap", epoch=50, t
         trials = 1
         seeds = [seed]
 
-    # use_xx flag controls the use of specific explaining algorithms (univariate, shap).
+    # use_xx flag controls the use of specific explaining algorithms (lasso, univariate, shap).
     # To use multiple explaining algorithms at the same time, edit the flags here.
     # Future consider control these flags through sensitize interface
+    use_lasso = True if explainer=='lasso' else False
     (use_shap, use_univariate) = (True, True) if (explainer=='shap') or (explainer=='explain') else (False, False)
     use_univariate = True if (explainer=='univariate') or (use_univariate==True) else False
     
     # if none specified, use shap as default
-    if not (use_univariate or use_shap):
+    if not (use_lasso or use_univariate or use_shap):
         use_shap, use_univariate = True, True
         learner, explainer = "xgboost", "shap"
 
@@ -280,6 +281,7 @@ def _sensitizeRun(X, y, params, learner="xgboost", explainer="shap", epoch=50, t
         # initialize sensitier
         sensitizer = Analyzer(params=params,
                               seed=s,
+                              use_lasso=use_lasso,
                               use_univariate=use_univariate,
                               use_shap=use_shap,
                               learner_name=learner,
@@ -290,7 +292,7 @@ def _sensitizeRun(X, y, params, learner="xgboost", explainer="shap", epoch=50, t
         if verbose > 0:
             log[i] = {}
             log[i]['seed'] = s
-            for k in ['univariate','shap','aggregated']:
+            for k in ['lasso','univariate','shap','aggregated']:
                 if k in sensitizer.learner_performance.keys():
                     log[i]['{}_performance'.format(k)] = sensitizer.learner_performance[k]
                     pylog.logger.info("trial:{}, {} performance: {}".format(i, k, sensitizer.learner_performance[k]))
@@ -300,7 +302,7 @@ def _sensitizeRun(X, y, params, learner="xgboost", explainer="shap", epoch=50, t
                     pylog.logger.info("trial:{}, {} sensitivity: {}".format(i, k, sensitizer.sensi[k]))
                     print("trial:{}, {} sensitivity: {}".format(i, k, sensitizer.sensi[k]))
 
-        if explainer not in ['univariate']:
+        if explainer not in ['lasso','univariate']:
             sensi[i] = sensitizer.sensi['aggregated']
         else:
             sensi[i] = sensitizer.sensi[explainer]
@@ -389,7 +391,7 @@ def getDataPath(name):
 
 @pylog.logit
 def sensitize(data_name="", explainer='shap', trials=0, epoch=50, topN=10, threshold=0.9):
-    # supporting four methods: univariate, shap
+    # supporting four methods: lasso, univariate, shap
     suc, data_path = getDataPath(data_name)
     if not suc:
         return False, "Can not find data: {}".format(data_name)
