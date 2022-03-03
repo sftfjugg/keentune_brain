@@ -3,6 +3,7 @@ import traceback
 
 from brain.algorithm.sensitize.sensitize import sensitize
 from brain.common.config import AlgoConfig
+from target.common import pylog
 
 from tornado.web import RequestHandler
 from tornado.httpclient import HTTPClient, HTTPRequest, HTTPError
@@ -21,19 +22,26 @@ class sensitizeHandler(RequestHandler):
                   response_port:str):
         http_client = HTTPClient()
         try:
+            URL = "http://{ip}:{port}/sensitize_result".format(
+                            ip = response_ip, port = response_port)
             response = http_client.fetch(HTTPRequest(
-                url    = "http://{ip}:{port}/sensitize_result".format(
-                            ip = response_ip, port = response_port),
+                url    = URL,
                 method = "POST",
                 body   = json.dumps(response_data)
             ))
+            pylog.logger.info("response to {}".format(URL))
+            pylog.logger.info("response data {}".format(response_data))
+
         except RuntimeError as e:
+            pylog.logger.error("Failed to response to {}: {}".format(URL, e))
             return False, "{},{}".format(e, traceback.format_exc())
 
         except HTTPError as e:
+            pylog.logger.error("Failed to response to {}: {}".format(URL, e))
             return False, "{},{}".format(e, traceback.format_exc())
 
         except Exception as e:
+            pylog.logger.error("Failed to response to {}: {}".format(URL, e))
             return False, "{},{}".format(e, traceback.format_exc())
 
         else:
@@ -48,14 +56,21 @@ class sensitizeHandler(RequestHandler):
 
     @run_on_executor
     def _sensitizeImpl(self, data_name, trials):
-        return sensitize(
-            data_name = data_name, 
-            trials    = trials, 
-            explainer = AlgoConfig.sensi_explainer, 
-            epoch     = AlgoConfig.sensi_epoch, 
-            topN      = AlgoConfig.sensi_topN,
-            threshold = AlgoConfig.sensi_threshold
-        )
+        try:
+            suc, sensitize_result = sensitize(
+                data_name = data_name, 
+                trials    = trials, 
+                explainer = AlgoConfig.sensi_explainer, 
+                epoch     = AlgoConfig.sensi_epoch, 
+                topN      = AlgoConfig.sensi_topN,
+                threshold = AlgoConfig.sensi_threshold
+            )
+
+        except Exception as e:
+            return False, "{}".format(e)
+        
+        else:
+            return suc, sensitize_result
 
 
     @coroutine
@@ -67,21 +82,19 @@ class sensitizeHandler(RequestHandler):
             assert request_data.__contains__('data')
 
         request_data = json.loads(self.request.body)
-        # load explainer and epoch from config
-        explainer = AlgoConfig.sensi_explainer
-        epoch = AlgoConfig.sensi_epoch
-        topN = AlgoConfig.sensi_topN
-        threshold = AlgoConfig.sensi_threshold
+        pylog.logger.info("get configure request: {}".format(request_data))
 
         try:
             _validField(request_data)
         
         except Exception as e:
+            pylog.logger.error("Failed to response request: {}".format(e))
             self.write(json.dumps({"suc" : False, "msg": str(e)}))
             self.finish()
 
         else:
-            self.write(json.dumps({"suc": True,"msg": ""}))
+            self.write(json.dumps({
+                "suc": True,"msg": "Sensitive parameter identification is running"}))
             self.finish()
 
             suc, out = yield self._sensitizeImpl(request_data['data'], int(request_data['trials']))
@@ -90,8 +103,7 @@ class sensitizeHandler(RequestHandler):
             else:
                 response_data = {"suc": suc, "result": {}, "msg": out}
 
-            _, msg = yield self._response(response_data, request_data['resp_ip'], request_data['resp_port'])
-            print(msg)
+            _, _ = yield self._response(response_data, request_data['resp_ip'], request_data['resp_port'])
 
 
 class sensiGraphHandler(RequestHandler):
