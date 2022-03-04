@@ -3,7 +3,7 @@ import traceback
 
 from brain.algorithm.sensitize.sensitize import sensitize
 from brain.common.config import AlgoConfig
-from target.common import pylog
+from brain.common import pylog
 
 from tornado.web import RequestHandler
 from tornado.httpclient import HTTPClient, HTTPRequest, HTTPError
