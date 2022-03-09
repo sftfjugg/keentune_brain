@@ -300,7 +300,7 @@ def _sensitizeRun(X, y, params, learner="xgboost", explainer="shap", epoch=50, t
                     pylog.logger.info("trial:{}, {} performance: {}".format(i, k, sensitizer.learner_performance[k]))
                     print("trial:{}, {} performance: {}".format(i, k, sensitizer.learner_performance[k]))
                 if k in sensitizer.sensi.keys():
-                    log[i]['{}_sensitivity'] = sensitizer.sensi[k]
+                    log[i]['{}_sensitivity'.format(k)] = sensitizer.sensi[k]
                     pylog.logger.info("trial:{}, {} sensitivity: {}".format(i, k, sensitizer.sensi[k]))
                     print("trial:{}, {} sensitivity: {}".format(i, k, sensitizer.sensi[k]))
 
