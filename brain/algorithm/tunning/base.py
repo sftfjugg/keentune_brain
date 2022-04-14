@@ -121,10 +121,7 @@ class OptimizerUnit(metaclass=ABCMeta):
         self.H_points = np.zeros(shape=(0, self.dim), dtype=float)
         self.H_score  = np.zeros(shape=(self.max_iteration, self.bench_size), dtype=float)
         self.H_loss_parts = np.zeros(shape=(self.max_iteration, self.bench_size), dtype=float)
-
-        self.opt_type = opt_type
-        self.opt_name = "{}[{}]".format(re.sub(r"\)", "]", re.sub(r"\(", "[", opt_name)), self.msg())
-        self.folder_path = os.path.join(Config.tunning_data_dir, self.opt_type, self.opt_name)
+        self.folder_path = os.path.join(Config.tunning_data_dir, opt_name)
 
         self.sigma = 1
         self.rho = 1.005 ** (500 / self.max_iteration)
