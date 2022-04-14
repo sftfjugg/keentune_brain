@@ -1,3 +1,4 @@
+from inspect import Parameter
 import re
 import os
 import time
@@ -338,3 +339,19 @@ class OptimizerUnit(metaclass=ABCMeta):
         pickle.dump(self.H_loss_parts, open(os.path.join(
             self.folder_path, "loss_parts.pkl"), 'wb+'))
         return self.folder_path
+
+
+    def getDataHead(self):
+        """ Get head of parameter_value.csv, score.csv and time.csv
+        
+            return the head of *.csv data after instance already initialized, *.csv files is supposed to be saved by keentuned.            
+        """
+        parameter_name_list = [param['name'] for param in self.knobs]
+        HEAD_parameter = ",".join(parameter_name_list)
+
+        benchmark_name_list = [bench_name for bench_name in self.bench.keys() if self.bench[bench_name]['weight'] > 0]
+        HEAD_benchmark = ",".join(benchmark_name_list)
+
+        HEAD_time = "acquire_start,acquire_end,feedback_start,feedback_end"
+
+        return HEAD_parameter, HEAD_benchmark, HEAD_time

@@ -143,7 +143,15 @@ class InitHandler(RequestHandler):
             return
 
         else:
-            self.write(json.dumps({"suc": True,"msg": errormessage}))
+            # points_head, score_head, time_head
+            HEAD_parameter, HEAD_benchmark, HEAD_time = OPTIMIZER.getDataHead()
+            self.write(json.dumps({
+                    "suc": True,
+                    "msg": errormessage,
+                    "parameters_head" : HEAD_parameter,
+                    "score_head"      : HEAD_benchmark,
+                    "time_head"       : HEAD_time
+                }))
             self.set_status(200)
             self.finish()
             return
