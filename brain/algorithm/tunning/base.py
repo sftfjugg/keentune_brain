@@ -1,4 +1,3 @@
-from inspect import Parameter
 import re
 import os
 import time
@@ -259,21 +258,31 @@ class OptimizerUnit(metaclass=ABCMeta):
             iteration (int) : Iteration of this condidate
             bench_score (dict) : Benchmark running result score of each bench.
         """
-        self.H_time[iteration][2] = time.time()
         if iteration != self.iteration:
             raise Exception("iteration mismatch, iteration wanted = {}, iteration feedback = {}".format(
                             self.iteration, iteration))
 
         loss_parts = self._getLoss(bench_score, iteration)
+        mathematical_loss = sum(loss_parts)
 
-        self.H_loss[iteration] = sum(loss_parts)
+        self.H_time[iteration][2] = time.time()
+        self.feedbackImpl(iteration, mathematical_loss)
+        self.H_time[iteration][3] = time.time()
+
+        self.H_loss[iteration] = mathematical_loss
         self.H_loss_parts[iteration] = np.array(loss_parts)
 
-        self.feedbackImpl(iteration, self.H_loss[iteration])
-        self.H_time[iteration][3] = time.time()
+        # get *.csv data
+        time_value_list = [str(timestamp) for timestamp in self.H_time[iteration]]
+        time_data_line = ",".join(time_value_list)
+        benchmark_value_list = [str(np.mean(score)) for score in bench_score.values()]
+        benchmark_value_list.append(str(mathematical_loss))
+        benchmark_value_line = ",".join(benchmark_value_list)
 
         if self.iteration % 10 == 1 or self.iteration == self.max_iteration - 1:
             self.__savefile()
+        
+        return time_data_line, benchmark_value_line
 
 
     @abstractmethod
@@ -324,32 +333,28 @@ class OptimizerUnit(metaclass=ABCMeta):
     def __savefile(self):
         if not os.path.exists(self.folder_path):
             os.makedirs(self.folder_path)
-        pickle.dump(self.knobs, open(os.path.join(
-            self.folder_path, "knobs.pkl"), 'wb+'))
-        pickle.dump(self.bench, open(os.path.join(
-            self.folder_path, "bench.pkl"), 'wb+'))
-        pickle.dump(self.H_time, open(os.path.join(
-            self.folder_path, "time.pkl"), 'wb+'))
-        pickle.dump(self.H_loss, open(os.path.join(
-            self.folder_path, "loss.pkl"), 'wb+'))
-        pickle.dump(self.H_score, open(os.path.join(
-            self.folder_path, "score.pkl"), 'wb+'))
-        pickle.dump(self.H_points, open(os.path.join(
-            self.folder_path, "points.pkl"), 'wb+'))
-        pickle.dump(self.H_loss_parts, open(os.path.join(
-            self.folder_path, "loss_parts.pkl"), 'wb+'))
+        
+        pickle.dump(self.knobs,         open(os.path.join(self.folder_path, "knobs.pkl"), 'wb+'))
+        pickle.dump(self.bench,         open(os.path.join(self.folder_path, "bench.pkl"), 'wb+'))
+        pickle.dump(self.H_time,        open(os.path.join(self.folder_path, "time.pkl"), 'wb+'))
+        pickle.dump(self.H_loss,        open(os.path.join(self.folder_path, "loss.pkl"), 'wb+'))
+        pickle.dump(self.H_score,       open(os.path.join(self.folder_path, "score.pkl"), 'wb+'))
+        pickle.dump(self.H_points,      open(os.path.join(self.folder_path, "points.pkl"), 'wb+'))
+        pickle.dump(self.H_loss_parts,  open(os.path.join(self.folder_path, "loss_parts.pkl"), 'wb+'))
+
         return self.folder_path
 
 
     def getDataHead(self):
         """ Get head of parameter_value.csv, score.csv and time.csv
         
-            return the head of *.csv data after instance already initialized, *.csv files is supposed to be saved by keentuned.            
+            Return the head of *.csv data after instance already initialized, *.csv files is supposed to be saved by keentuned.            
         """
         parameter_name_list = [param['name'] for param in self.knobs]
         HEAD_parameter = ",".join(parameter_name_list)
 
         benchmark_name_list = [bench_name for bench_name in self.bench.keys() if self.bench[bench_name]['weight'] > 0]
+        benchmark_name_list.append("mathematical_loss")
         HEAD_benchmark = ",".join(benchmark_name_list)
 
         HEAD_time = "acquire_start,acquire_end,feedback_start,feedback_end"

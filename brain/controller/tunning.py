@@ -236,32 +236,38 @@ class FeedbackHandler(RequestHandler):
         if not valid:
             self.write(json.dumps({
                 "suc": False,
-                "msg": msg
+                "msg": msg,
+                "time_data"  : "",
+                "score_data" : ""
             }))
             self.set_status(400)
             self.finish()
             return
         
         try:
-            OPTIMIZER.feedback(request_data['iteration'], request_data['bench_score'])
+            time_data_line, benchmark_value_line = OPTIMIZER.feedback(
+                iteration = request_data['iteration'], 
+                bench_score = request_data['bench_score'])
 
         except Exception as e:
             self.write(json.dumps({
                 "suc": False,
-                "msg": "{}".format(e)
+                "msg": "{}".format(e),
+                "time_data"  : "",
+                "score_data" : ""
             }))
             self.set_status(400)
             self.finish()
-            return
 
         else:
             self.write(json.dumps({
-                "suc": True,
-                "msg": ""
+                "suc" : True,
+                "msg" : "",
+                "time_data"  : time_data_line,
+                "score_data" : benchmark_value_line
             }))
             self.set_status(200)
             self.finish()
-            return
 
 
 class EndHandler(RequestHandler):
@@ -315,31 +321,3 @@ class BestHandler(RequestHandler):
             self.write(json.dumps(response_data))
             self.set_status(200)
             self.finish()
-
-
-# class scoreGraphHandler(RequestHandler):
-#     @APILog
-#     def get(self):
-#         suc, html_file_path = optimizer.visualScoreGraph()
-#         if not suc:
-#             self.write("get score graph failed:{}".format(html_file_path))
-#             self.set_status(200)
-#             self.finish()
-
-#         else:
-#             self.render(html_file_path)
-#             self.set_status(200)
-
-
-# class paramGraphHandler(RequestHandler):
-#     @APILog
-#     def get(self):
-#         suc, html_file_path = optimizer.visualParamGraph()
-#         if not suc:
-#             self.write("get param graph failed:{}".format(html_file_path))
-#             self.set_status(200)
-#             self.finish()
-
-#         else:
-#             self.render(html_file_path)
-#             self.set_status(200)
