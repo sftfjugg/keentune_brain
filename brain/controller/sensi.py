@@ -104,17 +104,3 @@ class sensitizeHandler(RequestHandler):
                 response_data = {"suc": suc, "result": {}, "msg": out}
 
             _, _ = yield self._response(response_data, request_data['resp_ip'], request_data['resp_port'])
-
-
-class sensiGraphHandler(RequestHandler):
-    def get(self):
-        from brain.visualization.sensiGraph import getSensiGraph
-        suc, html_file_path = getSensiGraph()
-        if not suc:
-            self.write("get sensi graph failed:{}".format(html_file_path))
-            self.set_status(200)
-            self.finish()
-
-        else:
-            self.render(html_file_path)
-            self.set_status(200)
