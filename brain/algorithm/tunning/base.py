@@ -70,7 +70,6 @@ class OptimizerUnit(metaclass=ABCMeta):
     @pylog.logit
     def __init__(self, 
                 opt_name: str, 
-                opt_type: str, 
                 max_iteration: int, 
                 knobs: list, 
                 baseline: dict):
