@@ -180,6 +180,9 @@ class AcquireHandler(RequestHandler):
 
         try:
             iteration, candidate, budget = OPTIMIZER.acquire()
+            parameter_value_list = [str(param['value']) for param in candidate]
+            parameter_value_line = ",".join(parameter_value_list)
+
             self.__vailedCandidate(candidate)
 
         except Exception as e:
@@ -191,7 +194,8 @@ class AcquireHandler(RequestHandler):
             response_data = {
                 "iteration" : iteration,
                 "candidate" : candidate,
-                "budget"    : budget
+                "budget"    : budget,
+                "parameter_value" : parameter_value_line
             }
             self.write(json.dumps(response_data))
             self.set_status(200)
