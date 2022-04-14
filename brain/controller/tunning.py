@@ -46,7 +46,7 @@ class InitHandler(RequestHandler):
         """ check if request data is vaild
 
         """
-        necessay_field = ['name', 'type', 'algorithm', 'iteration', 'parameters', 'baseline_score']
+        necessay_field = ['name', 'algorithm', 'iteration', 'parameters', 'baseline_score']
         for _field in necessay_field:
             if not request_data.__contains__(_field):
                 return False, "field '{}' is not defined!".format(_field)
@@ -75,7 +75,6 @@ class InitHandler(RequestHandler):
                 from brain.algorithm.tunning.tpe import TPE
                 OPTIMIZER = TPE(
                     opt_name = request_data['name'], 
-                    opt_type = request_data['type'],
                     max_iteration = request_data['iteration'],
                     knobs = request_data['parameters'], 
                     baseline = request_data['baseline_score'])
@@ -84,7 +83,6 @@ class InitHandler(RequestHandler):
                 from brain.algorithm.tunning.hord import HORD
                 OPTIMIZER = HORD(
                     opt_name = request_data['name'], 
-                    opt_type = request_data['type'],
                     max_iteration = request_data['iteration'],
                     knobs = request_data['parameters'], 
                     baseline = request_data['baseline_score'])
@@ -93,7 +91,6 @@ class InitHandler(RequestHandler):
                 from brain.algorithm.tunning.random import Random
                 OPTIMIZER = Random(
                     opt_name = request_data['name'], 
-                    opt_type = request_data['type'],
                     max_iteration = request_data['iteration'],
                     knobs = request_data['parameters'], 
                     baseline = request_data['baseline_score'])
