@@ -1,0 +1,98 @@
+.TH "keentune-brain.conf" "5" "5 May 2022" "KeenTune"
+.SH NAME
+keentune-brain.conf - keentune-brain configuration file
+.SH SYNOPSIS
+.B /etc/keentune/conf/keentune-brain.conf
+.SH DESCRIPTION
+This man page documents format of the keentune-brain configuration file.
+The \fIkeentune-brain.conf\fR file uses the ini\-file format.
+.
+.SH "[home]"
+.
+.TP
+\fBKeenTune_HOME = /etc/keentune/\fR
+Keentune install path
+.
+.TP
+\fBKeenTune_WORKSPACE = /var/keentune/\fR
+Keentune workspace
+.
+.SH "[brain]"
+.
+.TP
+\fBTARGET_PORT = 9872\fR
+brain algorithm port
+.
+.TP
+\fBGRAPH_PORT = 9000\fR
+brain sensitive port
+.
+.SH "[log]"
+.
+.TP
+\fBCONSOLE_LEVEL = ERROR\fR
+Logging level of terminal output
+.
+.TP
+\fBLOGFILE_LEVEL = DEBUG\fR
+The log level of log file output
+.
+.TP
+\fBLOGFILE_PATH  = /var/log/keentune/brain.log\fR
+Log File Name
+.
+.TP
+\fBLOGFILE_INTERVAL = 1\fR
+The time interval of the log file
+.
+.TP
+\fBLOGFILE_BACKUP_COUNT = 14\fR
+Number of log files saved
+.
+.SH "[algorithm]"
+.
+.TP
+\fBMAX_SEARCH_SPACE = 1000\fR
+Max search space size for a parameter
+.
+.SH "[hord]"
+.
+.TP
+\fBSURROGATE = RBFInterpolant\fR
+HORD surrogate: RBFInterpolant, PolyRegressor, GPRegressor
+.
+.TP
+\fBSTRATEGY = DYCORSStrategy\fR
+HORD strategy: DYCORSStrategy, SRBFStrategy, SOPStrategy, EIStrategy
+.
+.SH "[sensi]"
+.
+.TP
+\fBexplainer = shap\fR
+supporting four methods: gp, lasso, univariate, shap
+.
+.TP
+\fBtrials = 0\fR
+number of trials for sensitize analysis
+.
+.TP
+\fBepoch = 5\fR
+number of epochs for training xgboost
+.
+.TP
+\fBtopN = 10\fR
+top N parameters recommended
+.
+.TP
+\fBthreshold = 0.9\fR
+confidence threshold for accumulated sensitivity scores
+
+.SH FILES
+.I /etc/keentune/conf/keentune-brain.conf
+
+.SH "SEE ALSO"
+.LP
+keentune(8)
+
+.SH "BUGS"
+Report bugs at: https://gitee.com/anolis/keentuned/issues
