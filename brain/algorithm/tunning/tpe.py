@@ -13,7 +13,6 @@ class TPE(OptimizerUnit):
     @pylog.logit
     def __init__(self, 
                  opt_name: str, 
-                 opt_type: str,
                  max_iteration: int,
                  knobs: list, 
                  baseline: dict):
@@ -25,7 +24,7 @@ class TPE(OptimizerUnit):
             max_iteration (int): tuning max iteration
         """
 
-        super(TPE, self).__init__(opt_name, opt_type, max_iteration, knobs, baseline)
+        super(TPE, self).__init__(opt_name, max_iteration, knobs, baseline)
         
         self.trials = hyperopt.Trials()
         self.config_pipe = Pipe()

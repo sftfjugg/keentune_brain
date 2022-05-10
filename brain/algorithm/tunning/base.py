@@ -78,7 +78,6 @@ class OptimizerUnit(metaclass=ABCMeta):
 
         Args:
             opt_name (string)   : name and data folder of this optimizer.
-            opt_type (string)   : 'tuning' or 'collect'
             max_iteration (int) : tuning max iteration
             knobs (list)        : tuning parameters.
                 [
