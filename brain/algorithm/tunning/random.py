@@ -8,11 +8,10 @@ class Random(OptimizerUnit):
     @pylog.logit
     def __init__(self,
                  opt_name: str,
-                 opt_type: str,
                  max_iteration: int,
                  knobs: list,
                  baseline: dict):
-        super(Random, self).__init__(opt_name, opt_type, max_iteration, knobs, baseline)
+        super(Random, self).__init__(opt_name, max_iteration, knobs, baseline)
 
     @pylog.logit
     def acquireImpl(self):
