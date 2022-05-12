@@ -9,7 +9,7 @@ class DataSet:
         if data_name == "":
             self.data_path = self._getLatestData()
         else:
-            self.data_path = self.__getDataPath()
+            self.data_path = self.__getDataPath(data_name)
         
         self.knobs_path = os.path.join(self.data_path, "knobs.pkl")
         self.knobs = pickle.load(open(self.knobs_path, "rb"))
