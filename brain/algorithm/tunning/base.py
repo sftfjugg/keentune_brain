@@ -270,7 +270,13 @@ class OptimizerUnit(metaclass=ABCMeta):
         # get *.csv data
         time_value_list = [str(timestamp) for timestamp in self.H_time[iteration]]
         time_data_line = ",".join(time_value_list)
+
         benchmark_value_list = [str(np.mean(score)) for score in bench_score.values()]
+        
+        benchmark_value_list = list(filter(
+            lambda x:self.bench[list(self.bench.keys())[benchmark_value_list.index(x)]]['weight'] > 0,
+            benchmark_value_list
+        ))
         benchmark_value_list.append(str(mathematical_loss))
         benchmark_value_line = ",".join(benchmark_value_list)
 
