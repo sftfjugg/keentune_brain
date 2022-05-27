@@ -40,8 +40,8 @@ class DataSet:
 
 
     def __getDataPath(self, data_name):
-        if os.path.exists(os.join(Config.tunning_data_dir, data_name)):
-            return os.join(Config.tunning_data_dir, data_name)
+        if os.path.exists(os.path.join(Config.tunning_data_dir, data_name)):
+            return os.path.join(Config.tunning_data_dir, data_name)
         else:
             raise Exception("Can not find data with dataname = {}".format(data_name))
 
@@ -51,5 +51,5 @@ def listData():
 
 
 def deleteFile(data_name):
-    if os.path.exists(os.join(Config.tunning_data_dir, data_name)):
-        os.system("rm -rf {}".format(os.join(Config.tunning_data_dir, data_name)))
+    if os.path.exists(os.path.join(Config.tunning_data_dir, data_name)):
+        os.system("rm -rf {}".format(os.path.join(Config.tunning_data_dir, data_name)))
