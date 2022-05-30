@@ -351,7 +351,6 @@ def sensitize(data_name="", explainer='shap', trials=0, epoch=50, topN=10, thres
             sensi_file: the path to detialed sensi data from all trials
     """
 
-    
     try:
         sensitize_data = DataSet(data_name)
     
