@@ -102,7 +102,8 @@ class sensitizeHandler(RequestHandler):
 
             if suc:
                 head = ",".join([i['name'] for i in sensitize_result])
-                data = pickle.load(open(sensi_file_path,'rb'))
+                data = pickle.load(open(sensi_file_path,'rb')).tolist()
+                
                 response_data = {"suc": suc, "head": head, "result": data, "msg": ""}
             else:
                 response_data = {"suc": suc, "head": "", "result": [], "msg": sensitize_result}
