@@ -4,6 +4,7 @@ import unittest
 
 from test_brain_init import TestBrainInit
 from test_brain_acquire import TestBrainAcquire
+from test_brain_feedback import TestBrainFeedback
 
 os.chdir(os.path.abspath(os.path.join(os.getcwd(), "test")))
 
@@ -12,6 +13,7 @@ def RunModelCase():
     suite = unittest.TestSuite()
     suite.addTest(TestBrainInit('test_brain_server_FUN_init'))
     suite.addTest(TestBrainAcquire('test_brain_server_FUN_acquire'))
+    suite.addTest(TestBrainFeedback('test_brain_server_FUN_feedback'))
     return suite
 
 

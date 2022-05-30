@@ -3,7 +3,7 @@ import requests
 import unittest
 
 
-class TestBrainAcquire(unittest.TestCase):
+class TestBrainFeedback(unittest.TestCase):
     def setUp(self) -> None:
         self.proxies={"http": None, "https": None}
         url = "http://{}:{}/sensitize_list".format("localhost", "9872")
@@ -58,14 +58,28 @@ class TestBrainAcquire(unittest.TestCase):
         self.assertEqual(result.status_code, 200)
         self.assertEqual(result.text, '{"suc": true, "msg": ""}')
 
+        url = "http://{}:{}/{}".format("localhost", "9872", "acquire")
+        result = requests.get(url, proxies=self.proxies)
+        self.assertEqual(result.status_code, 200)
+        self.assertIsNotNone(result.text)
+
     def tearDown(self) -> None:
         url = "http://{}:{}/{}".format("localhost", "9872", "end")
         result = requests.get(url, proxies=self.proxies)
         self.assertEqual(result.status_code, 200)
         self.assertEqual(result.text, '{"suc": true, "msg": ""}')
 
-    def test_brain_server_FUN_acquire(self):
-        url = "http://{}:{}/{}".format("localhost", "9872", "acquire")
-        result = requests.get(url, proxies=self.proxies)
+    def test_brain_server_FUN_feedback(self):
+        url = "http://{}:{}/{}".format("localhost", "9872", "feedback")
+        data = {
+                "iteration":0,
+                "bench_score":{
+                    "Requests_sec": [23047.33, 23754.47, 23605.01, 23510.33, 23846.57]
+                }
+        }
+
+        headers = {"Content-Type": "application/json"}
+        
+        result = requests.post(url, data=json.dumps(data), headers=headers, proxies=self.proxies)
         self.assertEqual(result.status_code, 200)
-        self.assertIsNotNone(result.text)
+        self.assertEqual(result.text, '{"suc": true, "msg": ""}')
