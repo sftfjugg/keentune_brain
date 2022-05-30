@@ -10,6 +10,7 @@ from brain.algorithm.sensitize.sensitizer import Analyzer
 from brain.common import tools
 from brain.common import pylog
 from brain.common.dataset import DataSet
+from brain.common.config import Config
 
 @pylog.logit
 def _parseSenstizeResult(sensitize_results, knobs):
@@ -188,7 +189,10 @@ def _computeStability(scores, params):
         results['stable_II'][i] = float(len(selected_params)) / n
 
     # directories to save stable scores and parameter orders box-plot
-    dump_folder_path = os.path.join('data', datetime.now().strftime("%y-%m-%d-%H-%M-%S"))
+    dump_folder_path = os.path.join(
+        Config.sensi_data_dir, 
+        datetime.now().strftime("%y-%m-%d-%H-%M-%S"))
+
 
     if not os.path.exists(dump_folder_path):
         os.makedirs(dump_folder_path)
@@ -216,7 +220,7 @@ def _sensitizeImpl(sensitize_data, explainer='shap', trials=0, epoch=50, topN=10
                           e.g., sensitize_result = {"parameter_name": float value}
     """
     X, y, params = _loadData(sensitize_data)
-    sensitize_result = _sensitizeRun(X=X, y=y, params=params, 
+    sensitize_result, sensi_file = _sensitizeRun(X=X, y=y, params=params, 
                                     learner="xgboost", explainer=explainer, 
                                     epoch=epoch, trials=trials)
     sensitize_result = _sensitizeSelect(sensitize_weight=sensitize_result, 
@@ -224,7 +228,7 @@ def _sensitizeImpl(sensitize_data, explainer='shap', trials=0, epoch=50, topN=10
                                         confidence_threshold=threshold)
 
     sleep(10)
-    return True, _parseSenstizeResult(sensitize_result, sensitize_data.knobs)
+    return True, _parseSenstizeResult(sensitize_result, sensitize_data.knobs), sensi_file
 
 
 @pylog.logit
@@ -306,6 +310,15 @@ def _sensitizeRun(X, y, params, learner="xgboost", explainer="shap", epoch=50, t
         else:
             sensi[i] = sensitizer.sensi[explainer]
 
+    dump_folder_path = os.path.join(
+        Config.sensi_data_dir, 
+        datetime.now().strftime("%y-%m-%d-%H-%M-%S"))
+
+    if not os.path.exists(dump_folder_path):
+        os.makedirs(dump_folder_path)
+    sensi_file = os.path.join(dump_folder_path, "sensi.pkl")
+    pickle.dump(sensi, open(sensi_file, 'wb+'))
+
     if verbose > 0:
         _computeStability(scores=sensi, params=params)
 
@@ -317,7 +330,7 @@ def _sensitizeRun(X, y, params, learner="xgboost", explainer="shap", epoch=50, t
     for i in range(len(params)):
         result[params[i]] = sensi_mean[i]
     # return sorted(sensitize_result.items(), key=lambda d: d[1], reverse=True)
-    return result
+    return result, sensi_file
 
 
 @pylog.logit
