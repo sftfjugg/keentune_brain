@@ -1,5 +1,6 @@
 import json
 import traceback
+import pickle 
 
 from brain.algorithm.sensitize.sensitize import sensitize
 from brain.common.config import AlgoConfig
@@ -67,7 +68,7 @@ class sensitizeHandler(RequestHandler):
             )
 
         except Exception as e:
-            return False, "{}".format(e), sensi_file
+            return False, "{}".format(e), ""
         
         else:
             return suc, sensitize_result, sensi_file
@@ -97,10 +98,13 @@ class sensitizeHandler(RequestHandler):
                 "suc": True,"msg": "Sensitive parameter identification is running"}))
             self.finish()
 
-            suc, out, sensi_file = yield self._sensitizeImpl(request_data['data'], int(request_data['trials']))
+            suc, sensitize_result, sensi_file_path = yield self._sensitizeImpl(request_data['data'], int(request_data['trials']))
+
             if suc:
-                response_data = {"suc": suc, "result": out, "msg": ""}
+                head = ",".join([i['name'] for i in sensitize_result])
+                data = pickle.load(open(sensi_file_path,'rb'))
+                response_data = {"suc": suc, "head": head, "result": data, "msg": ""}
             else:
-                response_data = {"suc": suc, "result": {}, "msg": out}
+                response_data = {"suc": suc, "head": "", "result": [], "msg": sensitize_result}
 
             _, _ = yield self._response(response_data, request_data['resp_ip'], request_data['resp_port'])
