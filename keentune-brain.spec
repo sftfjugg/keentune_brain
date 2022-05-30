@@ -33,6 +33,8 @@ AI-Tunning algorithm models for KeenTune
 %{__python3} setup.py install --single-version-externally-managed -O1 --prefix=%{_prefix} --root=%{buildroot} --record=INSTALLED_FILES
 mkdir -p ${RPM_BUILD_ROOT}/usr/lib/systemd/system/
 cp -f ./keentune-brain.service ${RPM_BUILD_ROOT}/usr/lib/systemd/system/
+install -D -m644 man/keentune-brain.8 ${RPM_BUILD_ROOT}%{_mandir}/man8/keentune-brain.8
+install -D -m644 man/keentune-brain.conf.5 ${RPM_BUILD_ROOT}%{_mandir}/man5/keentune-brain.conf.5
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -45,7 +47,9 @@ fi
 
 %files -f INSTALLED_FILES
 %license LICENSE
-%{_libdir}/systemd/system/keentune-brain.service
+%{_prefix}/lib/systemd/system/keentune-brain.service
+%{_mandir}/man8/keentune-brain.8*
+%{_mandir}/man5/keentune-brain.conf.5*
 
 %changelog
 * Wed Jan 26 2022 lilinjie <lilinjie@uniontech.com> - 1.0.0-6
