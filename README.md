@@ -1,4 +1,4 @@
-[English](./keentune-brain/README.md)| [简体中文](./keentune-brain/README.md) 
+[English](./keentune-brain/README.md)| [简体中文](./keentune-brain/README_cn.md)
 
 # KeenTune Brain  
 ## Introduction
@@ -32,28 +32,28 @@ $ keentune-brain
 ## Algorithm
 ---   
 ### Sensitive Parameter Detection Algorithm
-### 线性回归模型 ElasticNet
-用于捕捉参数与调优结果之间明显的线性相关性。ElasticnNet可以快速训练完成，结合多轮次识别部分介绍，选择线性模型可以保障在多轮次识别的情况下，整体算法执行效率仍然较高。
-### 单变量互信息 Mutual Information
-用于捕捉单一参数和调优结果之间的线性/非线性相关性，避免由于参数冗余造成敏感参数的漏报。
-### 非线性模型XGBoost+可解释AI算法-SHAP
-用于捕捉参数与调有结果之间复杂的非线性关系，并通过可解释AI算法量化黑盒非线性模型捕捉到的相关性。
+### Linear regression model - ElasticNet
+Used to capture the apparent linear correlation between the parameters and the tuning results.ElasticnNet can be trained quickly, and combined with the introduction of the multi-round identification section, the selection of linear models can ensure that the overall algorithm execution efficiency is still high in the case of multiple rounds of identification.
+### Univariate mutual information - Mutual Information
+Use to capture linear / nonlinear correlations between single parameters and tuning results, to avoid underreporting of sensitive parameters due to parameter redundancy.
+### Non-linear model-XGBoost + Explainable AI algorithm-SHAP
+It is used to capture the complex nonlinear relationship between parameters and tuning results, and to quantify the correlations captured by the black-box nonlinear model through an interpretable AI algorithm.
 
 ### Tuning Algorithm
 #### TPE(Tree-structured Parzen Estimator)
-基于GP代理模型和SMBO框架实现的参数调优算法，KeenTune中使用[hyperopt](https://github.com/hyperopt/hyperopt)实现TPE算法   
+Parameter tuning algorithm implemented based on the GP agent model and the SMBO framework，KeenTune use[hyperopt](https://github.com/hyperopt/hyperopt) implement the TPE algorithm
 [Algorithms for Hyper-Parameter Optimization](https://proceedings.neurips.cc/paper/2011/file/86e8f7ab32cfd12577bc2619bc635690-Paper.pdf)
 
 #### HORD(Radial Basis Function and Dynamic coordinate search)
-基于RBF代理模型和Dycors的参数调优算法，KeenTune中使用[pySOT](https://github.com/dme65/pySOT)实现了HORD算法  
+Parameter tuning algorithm based on the RBF agent model and Dycors，KeenTune use[pySOT](https://github.com/dme65/pySOT) implement the HORD algorithm
 [HORD](https://github.com/ilija139/HORD)
 
-## 代码结构
+## Code structure
 ---  
-+ algorithm: 算法模块，包括Tuning Algorithm和Sensitive Parameter Detection Algorithm  
-+ common: 通用方法模块
-+ controller: Web通信模块
-+ visualization: 可视化模块
++ algorithm: algorithm module，包括Tuning Algorithm和Sensitive Parameter Detection Algorithm
++ common: common methods
++ controller: Web communication module
++ visualization: Visualization module
 
 ## Documentation
----  
+---
