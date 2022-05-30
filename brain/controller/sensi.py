@@ -57,7 +57,7 @@ class sensitizeHandler(RequestHandler):
     @run_on_executor
     def _sensitizeImpl(self, data_name, trials):
         try:
-            suc, sensitize_result = sensitize(
+            suc, sensitize_result, sensi_file = sensitize(
                 data_name = data_name, 
                 trials    = trials, 
                 explainer = AlgoConfig.sensi_explainer, 
@@ -67,10 +67,10 @@ class sensitizeHandler(RequestHandler):
             )
 
         except Exception as e:
-            return False, "{}".format(e)
+            return False, "{}".format(e), sensi_file
         
         else:
-            return suc, sensitize_result
+            return suc, sensitize_result, sensi_file
 
 
     @coroutine
@@ -97,7 +97,7 @@ class sensitizeHandler(RequestHandler):
                 "suc": True,"msg": "Sensitive parameter identification is running"}))
             self.finish()
 
-            suc, out = yield self._sensitizeImpl(request_data['data'], int(request_data['trials']))
+            suc, out, sensi_file = yield self._sensitizeImpl(request_data['data'], int(request_data['trials']))
             if suc:
                 response_data = {"suc": suc, "result": out, "msg": ""}
             else:
