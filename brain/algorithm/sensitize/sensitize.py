@@ -335,7 +335,23 @@ def _sensitizeRun(X, y, params, learner="xgboost", explainer="shap", epoch=50, t
 
 @pylog.logit
 def sensitize(data_name="", explainer='shap', trials=0, epoch=50, topN=10, threshold=0.9):
-    # supporting four methods: gp, lasso, univariate, shap
+    """Call sensitivity estimation algorithms
+
+        Args:
+            data_name (str): path to prepared data for sensitivity estimation
+            explainer (str): name of the explaining algorithm, supporting four methods: gp, lasso, univariate, shap
+            trials (int): a number for running sensitize to get stable results
+            epoch (int): a predefined number for training learning models
+            topN (int): a predefined number for recommending parameters
+            threshold (float): a predefined confidence interval for recommending parameters
+
+        Return: 
+            suc (bool): indicate if run success
+            sensitize_result (dict): a dictionary containing sensitivity scores for recommended parameters
+            sensi_file: the path to detialed sensi data from all trials
+    """
+
+    
     try:
         sensitize_data = DataSet(data_name)
     
@@ -343,8 +359,8 @@ def sensitize(data_name="", explainer='shap', trials=0, epoch=50, topN=10, thres
         return False, "Can not load data to sensitize: {}".format(e)
     
     else:
-        suc, sensitize_result = _sensitizeImpl(sensitize_data, explainer, trials, epoch, topN, threshold)
+        suc, sensitize_result, sensi_file = _sensitizeImpl(sensitize_data, explainer, trials, epoch, topN, threshold)
         if not suc:
-            return False, "Get sensitive parameter failed: {}".format(sensitize_result)
+            return False, "Get sensitive parameter failed: {}".format(sensitize_result), ""
 
-        return True, sensitize_result
+        return True, sensitize_result, sensi_file
