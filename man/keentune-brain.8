@@ -16,12 +16,35 @@ KeenTune-brain - AI tuning Engine of 'KeenTune' system parameter optimization sy
 .SH SYNOPSIS
 \fBKeenTune-brain\fP
 .SH DESCRIPTION
-\fBKeenTune-brain\fR KeenTune-brain is an AI tuning Engine of 'KeenTune' system parameter optimization system. KeenTune-brain implements a variety of intelligent tuning algorithms. It generates a candidate configuration for KeenTune system, obtains an evaluation from Keentune-bench, and gives the optimal parameter configuration.
-
+\fBKeenTune-brain\fR KeenTune-brain is an AI tuning Engine of 'KeenTune' system parameter optimization system. KeenTune-brain implements a variety of intelligent tuning algorithms. It generates a candidate configuration for KeenTune system, obtains an evaluation from Keentune-bench, and gives the optimal parameter configuration. Mainly implement init, acquire, feedback, best, end these interfaces.
+.
+.SH "init"
+Initialize the optimizer.
+.
+.SH "acquire"
+Acquire a configuration candidate.
+.
+.SH "feedback"
+Feedback benchmark performance score to latest configuration candidate.
+.
+.SH "best"
+Get best configuration.
+.
+.SH "end"
+End the optimizer active.
+.
 .SH "Run"
 .
 .TP
 \fBsystemctl start keentune-brain.service\fR
+.
+.SH "FILES"
+.nf
+/etc/keentune
+.
+.SH "SEE ALSO"
+.LP
+keentune-brain.conf(5)
 
 .SH "BUGS"
 Report bugs at: https://gitee.com/anolis/keentuned/issues
