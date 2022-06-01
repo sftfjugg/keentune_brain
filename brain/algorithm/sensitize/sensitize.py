@@ -78,7 +78,14 @@ def _sensitizeSelect(sensitize_weight, topN=10, confidence_threshold=0.9):
     confidence = weights_cumsum[k - 1]
     # use original values to output
     weights_sorted = np.array([weights[i] for i in sorted_indice])
-    return (params_sorted[:k], weights_sorted[:k], confidence)
+
+    """ 
+    Return complete knobs list with weights to user, filter knobs by themselves.
+    Author: runzhe    Date: 2022.6.1
+    """
+    return (params_sorted, weights_sorted, confidence)
+    # return (params_sorted[:k], weights_sorted[:k], confidence)
+
 
 
 @pylog.logit
