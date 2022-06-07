@@ -5,7 +5,8 @@ import unittest
 from test_brain_init import TestBrainInit
 from test_brain_acquire import TestBrainAcquire
 from test_brain_feedback import TestBrainFeedback
-from MT_restful.test_brain_best import TestBrainBest
+from test_brain_best import TestBrainBest
+from test_brain_end import TestBrainEnd
 
 
 def RunModelCase():
@@ -14,6 +15,7 @@ def RunModelCase():
     suite.addTest(TestBrainAcquire('test_brain_server_FUN_acquire'))
     suite.addTest(TestBrainFeedback('test_brain_server_FUN_feedback'))
     suite.addTest(TestBrainBest('test_brain_server_FUN_best'))
+    suite.addTest(TestBrainEnd('test_brain_server_FUN_end'))
     return suite
 
 
