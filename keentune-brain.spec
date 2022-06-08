@@ -62,7 +62,7 @@ fi
 %{_prefix}/lib/systemd/system/keentune-brain.service
 
 %changelog
-* Wed Mar 03 2022 Runzhe Wang <15501019889@126.com> - 1.1.0-1
+* Thu Mar 03 2022 Runzhe Wang <15501019889@126.com> - 1.1.0-1
 - fix bug: update version to 1.1.0 in setup.py script.
 - Add support for GP (in iTuned) in sensitizing algorithms
 - Add support for lasso in sensitizing algorithms
@@ -70,7 +70,7 @@ fi
 - lazy load domain in keentune-target
 - fix other bugs
 
-* Wed Jan 01 2022 Runzhe Wang <runzhe.wrz@alibaba-inc.com>- 1.0.1
+* Sat Jan 01 2022 Runzhe Wang <runzhe.wrz@alibaba-inc.com>- 1.0.1
 - Verify input arguments of command 'param tune'
 - Supporting of multiple target tuning
 - Fix bug which cause keentune hanging after command 'param stop'
