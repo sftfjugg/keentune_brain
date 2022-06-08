@@ -34,14 +34,5 @@ def main():
     http_server_brain = tornado.httpserver.HTTPServer(app_brain)
     http_server_brain.listen(Config.brain_port)
 
-    app_graph = tornado.web.Application(handlers=[
-        # (r"/", tunning.scoreGraphHandler),
-        # (r"/param", tunning.paramGraphHandler),
-        # (r"/score", tunning.scoreGraphHandler),
-        (r"/sensi", sensi.sensiGraphHandler),
-    ])
-    http_server_graph = tornado.httpserver.HTTPServer(app_graph)
-    http_server_graph.listen(Config.graph_port)
-
     print("KeenTune AI-Engine running...")
     tornado.ioloop.IOLoop.instance().start()

@@ -303,31 +303,3 @@ class BestHandler(RequestHandler):
             self.write(json.dumps(response_data))
             self.set_status(200)
             self.finish()
-
-
-# class scoreGraphHandler(RequestHandler):
-#     @APILog
-#     def get(self):
-#         suc, html_file_path = optimizer.visualScoreGraph()
-#         if not suc:
-#             self.write("get score graph failed:{}".format(html_file_path))
-#             self.set_status(200)
-#             self.finish()
-
-#         else:
-#             self.render(html_file_path)
-#             self.set_status(200)
-
-
-# class paramGraphHandler(RequestHandler):
-#     @APILog
-#     def get(self):
-#         suc, html_file_path = optimizer.visualParamGraph()
-#         if not suc:
-#             self.write("get param graph failed:{}".format(html_file_path))
-#             self.set_status(200)
-#             self.finish()
-
-#         else:
-#             self.render(html_file_path)
-#             self.set_status(200)

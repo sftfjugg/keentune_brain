@@ -39,11 +39,9 @@ class Config:
     print("KeenTune Workspace: {}".format(keentune_workspace))
 
     brain_port = conf['brain']['algo_port']
-    graph_port = conf['brain']['graph_port']
 
     # workdir
     data_dir = os.path.join(keentune_workspace, 'data')
-    graph_tmp_dir = os.path.join(data_dir, "tmp_graph")
     sensi_data_dir = os.path.join(data_dir, "sensi_data")
     tunning_data_dir = os.path.join(data_dir, "tuning_data")
 
@@ -59,9 +57,6 @@ class Config:
 
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
-
-    if not os.path.exists(graph_tmp_dir):
-        os.makedirs(graph_tmp_dir)
 
     if not os.path.exists(tunning_data_dir):
         os.makedirs(tunning_data_dir)
