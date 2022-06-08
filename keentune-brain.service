@@ -1,12 +1,9 @@
 [Unit]
 Description=Tuning tool Daemon For AI-Engine
-After=systemd-sysctl.service network.target dbus.service keentuned.service
-Requires=dbus.service polkit.service
-Conflicts=cpupower.service
+After=systemd-sysctl.service network.target keentuned.service
 
 [Service]
-EnvironmentFile=-/etc/keentune/conf/brain.conf
-ExecStart=/usr/bin/keentune-brain
+ExecStart=/usr/bin/keentune-bench
 Type=simple
 
 [Install]
