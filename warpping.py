@@ -27,4 +27,14 @@ def warppingCheck():
 
 if __name__ == "__main__":
     version_in_spec, _ = warppingCheck()
-    os.system("tar -cvzf keentune-brain-{}.tar.gz --exclude=**/__pycache__ brain keentune-brain.service LICENSE README.md requirements.txt setup.py".format(version_in_spec))
+    if os.path.exists("keentune-brain-{}".format(version_in_spec)):
+        os.system("rm -rf keentune-brain-{}".format(version_in_spec))
+    
+    os.system("mkdir keentune-brain-{}".format(version_in_spec))
+    os.system("cp -r brain keentune-brain-{}".format(version_in_spec))
+    os.system("cp keentune-brain.service keentune-brain-{}".format(version_in_spec))
+    os.system("cp LICENSE keentune-brain-{}".format(version_in_spec))
+    os.system("cp README.md keentune-brain-{}".format(version_in_spec))
+    os.system("cp requirements.txt keentune-brain-{}".format(version_in_spec))
+    os.system("cp setup.py keentune-brain-{}".format(version_in_spec))
+    os.system("tar -cvzf keentune-brain-{}.tar.gz --exclude=**/__pycache__ keentune-brain-{}".format(version_in_spec, version_in_spec))
