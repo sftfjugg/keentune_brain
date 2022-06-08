@@ -32,6 +32,8 @@ def warppingCheck():
         version_in_spec = re.search("Version:        ([\d.]+)\n",spec).group(1)
         release_in_spec = re.search("define anolis_release (\d)\n",spec).group(1)
         print("Get version: {}-{}".format(version_in_spec, release_in_spec))
+        
+        dateCheck(spec)
 
         if re.search(" - {}-{}".format(version_in_spec, release_in_spec), spec):
             print("[OK] check the version of changelog at keentune-brain.spec.")
