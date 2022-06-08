@@ -57,7 +57,7 @@ fi
 
 %files -f INSTALLED_FILES
 %defattr(-,root,root)
-%doc README.md README_cn.md
+%doc README.md
 %license LICENSE
 %{_prefix}/lib/systemd/system/keentune-brain.service
 
