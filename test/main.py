@@ -8,6 +8,7 @@ from test_brain_feedback import TestBrainFeedback
 from test_brain_best import TestBrainBest
 from test_brain_end import TestBrainEnd
 from test_brain_sensitize import TestBrainSensitize
+from test_brain_sensitize_list import TestBrainSensitizeList
 
 
 def RunModelCase():
@@ -18,6 +19,7 @@ def RunModelCase():
     suite.addTest(TestBrainBest('test_brain_server_FUN_best'))
     suite.addTest(TestBrainEnd('test_brain_server_FUN_end'))
     suite.addTest(TestBrainSensitize('test_brain_server_FUN_sensitize'))
+    suite.addTest(TestBrainSensitizeList('test_brain_server_FUN_sensitize_list'))
     return suite
 
 
