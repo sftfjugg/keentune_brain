@@ -71,7 +71,7 @@ class InitHandler(RequestHandler):
     def _createOptimizer(self, request_data):
         global OPTIMIZER
         try:
-            if request_data['algorithm'] == 'tpe':
+            if request_data['algorithm'].lower() == 'tpe':
                 from brain.algorithm.tunning.tpe import TPE
                 OPTIMIZER = TPE(
                     opt_name = request_data['name'], 
@@ -79,7 +79,7 @@ class InitHandler(RequestHandler):
                     knobs = request_data['parameters'], 
                     baseline = request_data['baseline_score'])
 
-            elif request_data['algorithm'] == 'hord':
+            elif request_data['algorithm'].lower() == 'hord':
                 from brain.algorithm.tunning.hord import HORD
                 OPTIMIZER = HORD(
                     opt_name = request_data['name'], 
@@ -87,7 +87,7 @@ class InitHandler(RequestHandler):
                     knobs = request_data['parameters'], 
                     baseline = request_data['baseline_score'])
             
-            elif request_data['algorithm'] == 'random':
+            elif request_data['algorithm'].lower() == 'random':
                 from brain.algorithm.tunning.random import Random
                 OPTIMIZER = Random(
                     opt_name = request_data['name'], 
