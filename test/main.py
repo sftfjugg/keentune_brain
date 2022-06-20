@@ -9,6 +9,7 @@ from test_brain_best import TestBrainBest
 from test_brain_end import TestBrainEnd
 from test_brain_sensitize import TestBrainSensitize
 from test_brain_sensitize_list import TestBrainSensitizeList
+from test_brain_sensitize_delete import TestKeentuneSensitizeDelete
 
 
 def RunModelCase():
@@ -20,6 +21,7 @@ def RunModelCase():
     suite.addTest(TestBrainEnd('test_brain_server_FUN_end'))
     suite.addTest(TestBrainSensitize('test_brain_server_FUN_sensitize'))
     suite.addTest(TestBrainSensitizeList('test_brain_server_FUN_sensitize_list'))
+    suite.addTest(TestKeentuneSensitizeDelete('test_brain_server_FUN_sensitize_delete'))
     return suite
 
 
