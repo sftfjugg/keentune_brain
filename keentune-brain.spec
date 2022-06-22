@@ -78,7 +78,7 @@ fi
 - lazy load domain in keentune-target
 - fix other bugs
 
-* Sat Jan 01 2022 Runzhe Wang <runzhe.wrz@alibaba-inc.com>- 1.0.1
+* Tue Feb 01 2022 Runzhe Wang <runzhe.wrz@alibaba-inc.com>- 1.0.1
 - Verify input arguments of command 'param tune'
 - Supporting of multiple target tuning
 - Fix bug which cause keentune hanging after command 'param stop'
