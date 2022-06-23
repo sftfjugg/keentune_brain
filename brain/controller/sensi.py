@@ -101,7 +101,7 @@ class sensitizeHandler(RequestHandler):
             if suc:
                 response_data = {"suc": suc, "result": out, "msg": ""}
             else:
-                response_data = {"suc": suc, "result": {}, "msg": out}
+                response_data = {"suc": suc, "result": [], "msg": out}
 
             _, _ = yield self._response(response_data, request_data['resp_ip'], request_data['resp_port'])
 
