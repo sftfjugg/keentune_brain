@@ -65,7 +65,7 @@ fi
 * Mon Jun 27 2022 Runzhe Wang <runzhe.wrz@alibaba-inc.com> - 1.2.1-3
 - fix bug: unnecessary requires e.g. ultraopt, bokeh, requests, paramiko, PyYAML
 
-* Mon Jun 23 2022 Runzhe Wang <runzhe.wrz@alibaba-inc.com> - 1.2.1-2
+* Thu Jun 23 2022 Runzhe Wang <runzhe.wrz@alibaba-inc.com> - 1.2.1-2
 - fix bug: no error message if lack of python package in brain
 
 * Mon Jun 20 2022 Runzhe Wang <runzhe.wrz@alibaba-inc.com> - 1.2.1-1
