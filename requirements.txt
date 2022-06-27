@@ -3,11 +3,6 @@ tornado
 POAP
 numpy
 pySOT
-ultraopt
-bokeh
-requests
 scikit_learn
-paramiko
-PyYAML
 xgboost
 shap
