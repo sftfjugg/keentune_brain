@@ -23,12 +23,11 @@ class AlgoConfig:
 
     # Sensitize
     EPOCH     = int(conf['sensitize']['EPOCH'])
-    TOPN      = int(conf['sensi']['TOPN'])
-    THRESHOLD = float(conf['sensi']['THRESHOLD'])
+    TOPN      = int(conf['sensitize']['TOPN'])
+    THRESHOLD = float(conf['sensitize']['THRESHOLD'])
 
-    # TODO: remove these 2 config items
+    # TODO: remove the config item
     EXPLAINER = 'shap'
-    sensi_explainer = 'shap'
 
 
 class Config:

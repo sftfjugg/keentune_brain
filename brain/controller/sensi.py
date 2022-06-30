@@ -56,7 +56,7 @@ class sensitizeHandler(RequestHandler):
 
 
     @run_on_executor
-    def _sensitizeImpl(self, data_name, trials, explainer = AlgoConfig.EXPLAINE):
+    def _sensitizeImpl(self, data_name, trials, explainer = AlgoConfig.EXPLAINER):
         try:
             suc, sensitize_result, sensi_file = sensitize(
                 data_name = data_name, 
