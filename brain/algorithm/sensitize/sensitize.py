@@ -1,5 +1,4 @@
 import os
-import re
 import pickle
 import numpy as np
 
@@ -9,9 +8,9 @@ from datetime import datetime
 from brain.algorithm.sensitize.sensitizer import Analyzer
 
 from brain.common import tools
-from brain.common.config import Config
 from brain.common import pylog
-
+from brain.common.dataset import DataSet
+from brain.common.config import Config
 
 @pylog.logit
 def _parseSenstizeResult(sensitize_results, knobs):
@@ -79,15 +78,22 @@ def _sensitizeSelect(sensitize_weight, topN=10, confidence_threshold=0.9):
     confidence = weights_cumsum[k - 1]
     # use original values to output
     weights_sorted = np.array([weights[i] for i in sorted_indice])
-    return (params_sorted[:k], weights_sorted[:k], confidence)
+
+    """ 
+    Return complete knobs list with weights to user, filter knobs by themselves.
+    Author: runzhe    Date: 2022.6.1
+    """
+    return (params_sorted, weights_sorted, confidence)
+    # return (params_sorted[:k], weights_sorted[:k], confidence)
+
 
 
 @pylog.logit
-def _loadData(data_path):
+def _loadData(sensitize_data):
     """Load and prepare data for analyzing
 
     Args:
-        data_path (string): path of numpy data
+        sensitize_data (DataSet): dataset to sensitize
     Return:
         X (numpy array of shape (n,m)): training data,
         y (numpy array of shape (n,)): training target for regression,
@@ -95,19 +101,20 @@ def _loadData(data_path):
     """
 
     # extract parameter names
-    knobs = np.load(data_path + '/knobs.pkl', allow_pickle=True)
+    knobs = np.load(sensitize_data.knobs_path, allow_pickle=True)
     params = [k['name'] for k in knobs]
 
     # load data
-    X = np.load(data_path + '/points.pkl', allow_pickle=True)
+    X = np.load(sensitize_data.points_path, allow_pickle=True)
     X = tools.normalizePts(X, knobs)
+    
     # load score
-    bench = np.load(data_path + '/bench.pkl', allow_pickle=True)
+    bench = np.load(sensitize_data.bench_path, allow_pickle=True)
+
     # find benchmark results with highest weight as the main objective for analysis
     bench_index = np.argsort([bench[k]['weight'] for k in bench.keys()])[-1]
-    score = np.load(data_path + '/score.pkl', allow_pickle=True)
+    score = np.load(sensitize_data.score_path, allow_pickle=True)
     y = score[:, bench_index]
-
     return X, y, params
 
 
@@ -189,7 +196,10 @@ def _computeStability(scores, params):
         results['stable_II'][i] = float(len(selected_params)) / n
 
     # directories to save stable scores and parameter orders box-plot
-    dump_folder_path = os.path.join('data', datetime.now().strftime("%y-%m-%d-%H-%M-%S"))
+    dump_folder_path = os.path.join(
+        Config.sensi_data_dir, 
+        datetime.now().strftime("%y-%m-%d-%H-%M-%S"))
+
 
     if not os.path.exists(dump_folder_path):
         os.makedirs(dump_folder_path)
@@ -206,7 +216,7 @@ def _computeStability(scores, params):
 
 
 @pylog.logit
-def _sensitizeImpl(data_path, explainer='shap', trials=0, epoch=50, topN=10, threshold=0.9):
+def _sensitizeImpl(sensitize_data, explainer='shap', trials=0, epoch=50, topN=10, threshold=0.9):
     """Implementation of sensitive parameter identification algorithm
 
     Args:
@@ -216,8 +226,8 @@ def _sensitizeImpl(data_path, explainer='shap', trials=0, epoch=50, topN=10, thr
         sensitize_result: a dict of parameters sensitivity scores, keys are sorted descendingly according to the scores
                           e.g., sensitize_result = {"parameter_name": float value}
     """
-    X, y, params = _loadData(data_path)
-    sensitize_result = _sensitizeRun(X=X, y=y, params=params, 
+    X, y, params = _loadData(sensitize_data)
+    sensitize_result, sensi_file = _sensitizeRun(X=X, y=y, params=params, 
                                     learner="xgboost", explainer=explainer, 
                                     epoch=epoch, trials=trials)
     sensitize_result = _sensitizeSelect(sensitize_weight=sensitize_result, 
@@ -225,9 +235,7 @@ def _sensitizeImpl(data_path, explainer='shap', trials=0, epoch=50, topN=10, thr
                                         confidence_threshold=threshold)
 
     sleep(10)
-    knobs_path = os.path.join(data_path, "knobs.pkl")
-    knobs = pickle.load(open(knobs_path, 'rb'))
-    return True, _parseSenstizeResult(sensitize_result, knobs)
+    return True, _parseSenstizeResult(sensitize_result, sensitize_data.knobs), sensi_file
 
 
 @pylog.logit
@@ -309,6 +317,15 @@ def _sensitizeRun(X, y, params, learner="xgboost", explainer="shap", epoch=50, t
         else:
             sensi[i] = sensitizer.sensi[explainer]
 
+    dump_folder_path = os.path.join(
+        Config.sensi_data_dir, 
+        datetime.now().strftime("%y-%m-%d-%H-%M-%S"))
+
+    if not os.path.exists(dump_folder_path):
+        os.makedirs(dump_folder_path)
+    sensi_file = os.path.join(dump_folder_path, "sensi.pkl")
+    pickle.dump(sensi, open(sensi_file, 'wb+'))
+
     if verbose > 0:
         _computeStability(scores=sensi, params=params)
 
@@ -320,91 +337,36 @@ def _sensitizeRun(X, y, params, learner="xgboost", explainer="shap", epoch=50, t
     for i in range(len(params)):
         result[params[i]] = sensi_mean[i]
     # return sorted(sensitize_result.items(), key=lambda d: d[1], reverse=True)
-    return result
-
-
-@pylog.logit
-def _checkFile(data_path):
-    if not os.path.exists(os.path.join(data_path, "bench.pkl")):
-        return False, "{} do not exits".format(os.path.join(data_path, "bench.pkl"))
-    if not os.path.exists(os.path.join(data_path, "knobs.pkl")):
-        return False, "{} do not exits".format(os.path.join(data_path, "knobs.pkl"))
-    if not os.path.exists(os.path.join(data_path, "points.pkl")):
-        return False, "{} do not exits".format(os.path.join(data_path, "points.pkl"))
-    if not os.path.exists(os.path.join(data_path, "score.pkl")):
-        return False, "{} do not exits".format(os.path.join(data_path, "score.pkl"))
-
-    return True, ""
-
-
-@pylog.logit
-def _getLatestData():
-    """Get latest numpy data.
-
-    Returns:
-        str: latest numpy data file path.
-    """
-    choice_table = []
-    sub_folder_name_list = list(os.listdir(Config.tunning_data_dir))
-
-    for _type in sub_folder_name_list:
-        type_folder_path = os.path.join(Config.tunning_data_dir, _type)
-
-        for data_folder_name in os.listdir(type_folder_path):
-            data_folder_path = os.path.join(type_folder_path, data_folder_name)
-            create_time = os.path.getctime(data_folder_path)
-            choice_table.append((data_folder_path, create_time))
-
-    if choice_table.__len__() == 0:
-        return False, ""
-
-    choice_table = sorted(choice_table, key=lambda x: x[1], reverse=True)
-    latest_data_folder_path = choice_table[0][0]
-    return True, latest_data_folder_path
-
-
-@pylog.logit
-def getDataPath(name):
-    """Get numpy data path by data name.
-
-    Get latest numpy data if data name is empty.
-
-    Args:
-        name (str): numpy data name.
-
-    Returns:
-        str: numpy data abs path.
-    """
-    if name == "":
-        return _getLatestData()
-    sub_folder_name_list = list(os.listdir(Config.tunning_data_dir))
-
-    for _type in sub_folder_name_list:
-        type_folder_path = os.path.join(Config.tunning_data_dir, _type)
-
-        for data_folder_name in os.listdir(type_folder_path):
-            data_name = re.split(r"[\[\]]", data_folder_name)[0]
-            if data_name == name:
-                data_path = os.path.join(
-                    Config.tunning_data_dir, _type, data_folder_name)
-                return True, data_path
-    return False, ""
+    return result, sensi_file
 
 
 @pylog.logit
 def sensitize(data_name="", explainer='shap', trials=0, epoch=50, topN=10, threshold=0.9):
-    # supporting four methods: gp, lasso, univariate, shap
-    suc, data_path = getDataPath(data_name)
-    if not suc:
-        return False, "Can not find data: {}".format(data_name)
+    """Call sensitivity estimation algorithms
 
-    suc, msg = _checkFile(data_path)
-    if not suc:
-        return False, "Check numpy data failed: {}".format(msg)
+        Args:
+            data_name (str): path to prepared data for sensitivity estimation
+            explainer (str): name of the explaining algorithm, supporting four methods: gp, lasso, univariate, shap
+            trials (int): a number for running sensitize to get stable results
+            epoch (int): a predefined number for training learning models
+            topN (int): a predefined number for recommending parameters
+            threshold (float): a predefined confidence interval for recommending parameters
 
-    suc, sensitize_result = _sensitizeImpl(data_path, explainer, trials, epoch, topN, threshold)
+        Return: 
+            suc (bool): indicate if run success
+            sensitize_result (dict): a dictionary containing sensitivity scores for recommended parameters
+            sensi_file: the path to detialed sensi data from all trials
+    """
 
-    if not suc:
-        return False, "Get sensitive parameter failed: {}".format(sensitize_result)
+    try:
+        sensitize_data = DataSet(data_name)
+    
+    except Exception as e:
+        return False, "Can not load data to sensitize: {}".format(e)
+    
+    else:
+        suc, sensitize_result, sensi_file = _sensitizeImpl(sensitize_data, explainer, trials, epoch, topN, threshold)
+        if not suc:
+            return False, "Get sensitive parameter failed: {}".format(sensitize_result), ""
 
-    return True, sensitize_result
+        return True, sensitize_result, sensi_file

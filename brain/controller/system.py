@@ -1,15 +1,12 @@
 import json
 
+from brain.common.dataset import listData, deleteFile
 from tornado.web import RequestHandler
-
-from brain.common import tools
-from brain.common.pylog import APILog
 
 
 class dataListHandler(RequestHandler):
-    @APILog
     def get(self):
-        data_list = tools.dataList()
+        data_list = listData()
         resp_data = {
             "suc"   : True,
             "data"  : data_list
@@ -19,7 +16,6 @@ class dataListHandler(RequestHandler):
 
 
 class dataDeleteHandler(RequestHandler):
-    @APILog
     def post(self):
         data = json.loads(self.request.body)
         try:
@@ -35,7 +31,7 @@ class dataDeleteHandler(RequestHandler):
             self.set_status(400)
 
         else:
-            tools.deleteFile(data_name)
+            deleteFile(data_name)
             resp_data = {
                 "suc": True,
                 "msg": ""

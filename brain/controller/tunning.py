@@ -46,7 +46,7 @@ class InitHandler(RequestHandler):
         """ check if request data is vaild
 
         """
-        necessay_field = ['name', 'type', 'algorithm', 'iteration', 'parameters', 'baseline_score']
+        necessay_field = ['name', 'algorithm', 'iteration', 'parameters', 'baseline_score']
         for _field in necessay_field:
             if not request_data.__contains__(_field):
                 return False, "field '{}' is not defined!".format(_field)
@@ -71,29 +71,26 @@ class InitHandler(RequestHandler):
     def _createOptimizer(self, request_data):
         global OPTIMIZER
         try:
-            if request_data['algorithm'] == 'tpe':
+            if request_data['algorithm'].lower() == 'tpe':
                 from brain.algorithm.tunning.tpe import TPE
                 OPTIMIZER = TPE(
                     opt_name = request_data['name'], 
-                    opt_type = request_data['type'],
                     max_iteration = request_data['iteration'],
                     knobs = request_data['parameters'], 
                     baseline = request_data['baseline_score'])
 
-            elif request_data['algorithm'] == 'hord':
+            elif request_data['algorithm'].lower() == 'hord':
                 from brain.algorithm.tunning.hord import HORD
                 OPTIMIZER = HORD(
                     opt_name = request_data['name'], 
-                    opt_type = request_data['type'],
                     max_iteration = request_data['iteration'],
                     knobs = request_data['parameters'], 
                     baseline = request_data['baseline_score'])
             
-            elif request_data['algorithm'] == 'random':
+            elif request_data['algorithm'].lower() == 'random':
                 from brain.algorithm.tunning.random import Random
                 OPTIMIZER = Random(
                     opt_name = request_data['name'], 
-                    opt_type = request_data['type'],
                     max_iteration = request_data['iteration'],
                     knobs = request_data['parameters'], 
                     baseline = request_data['baseline_score'])
@@ -143,7 +140,15 @@ class InitHandler(RequestHandler):
             return
 
         else:
-            self.write(json.dumps({"suc": True,"msg": errormessage}))
+            # points_head, score_head, time_head
+            HEAD_parameter, HEAD_benchmark, HEAD_time = OPTIMIZER.getDataHead()
+            self.write(json.dumps({
+                    "suc": True,
+                    "msg": errormessage,
+                    "parameters_head" : HEAD_parameter,
+                    "score_head"      : HEAD_benchmark,
+                    "time_head"       : HEAD_time
+                }))
             self.set_status(200)
             self.finish()
             return
@@ -172,6 +177,9 @@ class AcquireHandler(RequestHandler):
 
         try:
             iteration, candidate, budget = OPTIMIZER.acquire()
+            parameter_value_list = [str(param['value']) for param in candidate]
+            parameter_value_line = ",".join(parameter_value_list)
+
             self.__vailedCandidate(candidate)
 
         except Exception as e:
@@ -183,7 +191,8 @@ class AcquireHandler(RequestHandler):
             response_data = {
                 "iteration" : iteration,
                 "candidate" : candidate,
-                "budget"    : budget
+                "budget"    : budget,
+                "parameter_value" : parameter_value_line
             }
             self.write(json.dumps(response_data))
             self.set_status(200)
@@ -224,32 +233,38 @@ class FeedbackHandler(RequestHandler):
         if not valid:
             self.write(json.dumps({
                 "suc": False,
-                "msg": msg
+                "msg": msg,
+                "time_data"  : "",
+                "score_data" : ""
             }))
             self.set_status(400)
             self.finish()
             return
         
         try:
-            OPTIMIZER.feedback(request_data['iteration'], request_data['bench_score'])
+            time_data_line, benchmark_value_line = OPTIMIZER.feedback(
+                iteration = request_data['iteration'], 
+                bench_score = request_data['bench_score'])
 
         except Exception as e:
             self.write(json.dumps({
                 "suc": False,
-                "msg": "{}".format(e)
+                "msg": "{}".format(e),
+                "time_data"  : "",
+                "score_data" : ""
             }))
             self.set_status(400)
             self.finish()
-            return
 
         else:
             self.write(json.dumps({
-                "suc": True,
-                "msg": ""
+                "suc" : True,
+                "msg" : "",
+                "time_data"  : time_data_line,
+                "score_data" : benchmark_value_line
             }))
             self.set_status(200)
             self.finish()
-            return
 
 
 class EndHandler(RequestHandler):
@@ -303,31 +318,3 @@ class BestHandler(RequestHandler):
             self.write(json.dumps(response_data))
             self.set_status(200)
             self.finish()
-
-
-# class scoreGraphHandler(RequestHandler):
-#     @APILog
-#     def get(self):
-#         suc, html_file_path = optimizer.visualScoreGraph()
-#         if not suc:
-#             self.write("get score graph failed:{}".format(html_file_path))
-#             self.set_status(200)
-#             self.finish()
-
-#         else:
-#             self.render(html_file_path)
-#             self.set_status(200)
-
-
-# class paramGraphHandler(RequestHandler):
-#     @APILog
-#     def get(self):
-#         suc, html_file_path = optimizer.visualParamGraph()
-#         if not suc:
-#             self.write("get param graph failed:{}".format(html_file_path))
-#             self.set_status(200)
-#             self.finish()
-
-#         else:
-#             self.render(html_file_path)
-#             self.set_status(200)
