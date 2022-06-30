@@ -28,11 +28,12 @@ def main():
         (r"/best", tunning.BestHandler),
         (r"/end", tunning.EndHandler),
         (r"/sensitize", sensi.sensitizeHandler),
+        (r"/avaliable", system.avaliableHandler),
         (r"/sensitize_list", system.dataListHandler),
         (r"/sensitize_delete", system.dataDeleteHandler),
     ])
     http_server_brain = tornado.httpserver.HTTPServer(app_brain)
-    http_server_brain.listen(Config.brain_port)
+    http_server_brain.listen(Config.BRAIN_PORT)
     
     print("KeenTune AI-Engine running...")
     tornado.ioloop.IOLoop.instance().start()

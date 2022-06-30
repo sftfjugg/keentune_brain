@@ -56,15 +56,15 @@ class sensitizeHandler(RequestHandler):
 
 
     @run_on_executor
-    def _sensitizeImpl(self, data_name, trials):
+    def _sensitizeImpl(self, data_name, trials, explainer = AlgoConfig.EXPLAINE):
         try:
             suc, sensitize_result, sensi_file = sensitize(
                 data_name = data_name, 
                 trials    = trials, 
-                explainer = AlgoConfig.sensi_explainer, 
-                epoch     = AlgoConfig.sensi_epoch, 
-                topN      = AlgoConfig.sensi_topN,
-                threshold = AlgoConfig.sensi_threshold
+                explainer = explainer, 
+                epoch     = AlgoConfig.EPOCH, 
+                topN      = AlgoConfig.TOPN,
+                threshold = AlgoConfig.THRESHOLD
             )
 
         except Exception as e:
@@ -98,7 +98,18 @@ class sensitizeHandler(RequestHandler):
                 "suc": True,"msg": "Sensitive parameter identification is running"}))
             self.finish()
 
-            suc, sensitize_result, sensi_file_path = yield self._sensitizeImpl(request_data['data'], int(request_data['trials']))
+            # TODO: remove if condition in v1.3.0
+            if request_data.__contains__('explainer'):
+                suc, sensitize_result, sensi_file_path = yield self._sensitizeImpl(
+                    data_name = request_data['data'], 
+                    trials    = int(request_data['trials']),
+                    explainer = request_data['request_data']
+                )
+            else:
+                suc, sensitize_result, sensi_file_path = yield self._sensitizeImpl(
+                    data_name = request_data['data'], 
+                    trials    = int(request_data['trials'])
+                )
 
             if suc:
                 head = ",".join([i['name'] for i in sensitize_result])

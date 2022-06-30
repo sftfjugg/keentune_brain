@@ -4,6 +4,19 @@ from brain.common.dataset import listData, deleteFile
 from tornado.web import RequestHandler
 
 
+class avaliableHandler(RequestHandler):
+    def get(self):
+        data_list = listData()
+        resp_data = {
+            "suc"   : True,
+            "data"  : data_list,
+            "tune"  : ['hord', 'random', 'tpe'],
+            "explainer" :['gp','lasso', 'shap', 'explain', 'univariate']
+        }
+        self.write(json.dumps(resp_data))
+        self.set_status(200)
+
+
 class dataListHandler(RequestHandler):
     def get(self):
         data_list = listData()

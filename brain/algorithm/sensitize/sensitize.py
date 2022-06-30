@@ -197,7 +197,7 @@ def _computeStability(scores, params):
 
     # directories to save stable scores and parameter orders box-plot
     dump_folder_path = os.path.join(
-        Config.sensi_data_dir, 
+        Config.SENSI_DATA_PATH, 
         datetime.now().strftime("%y-%m-%d-%H-%M-%S"))
 
 
@@ -318,7 +318,7 @@ def _sensitizeRun(X, y, params, learner="xgboost", explainer="shap", epoch=50, t
             sensi[i] = sensitizer.sensi[explainer]
 
     dump_folder_path = os.path.join(
-        Config.sensi_data_dir, 
+        Config.SENSI_DATA_PATH, 
         datetime.now().strftime("%y-%m-%d-%H-%M-%S"))
 
     if not os.path.exists(dump_folder_path):

@@ -26,8 +26,8 @@ class DataSet:
 
     def _getLatestData(self):
         choice_table = []
-        for data_name in os.listdir(Config.tunning_data_dir):
-            data_path = os.path.join(Config.tunning_data_dir, data_name)
+        for data_name in os.listdir(Config.TUNE_DATA_PATH):
+            data_path = os.path.join(Config.TUNE_DATA_PATH, data_name)
             create_time = os.path.getctime(data_path)
             choice_table.append((data_path, create_time))
 
@@ -40,16 +40,16 @@ class DataSet:
 
 
     def __getDataPath(self, data_name):
-        if os.path.exists(os.path.join(Config.tunning_data_dir, data_name)):
-            return os.path.join(Config.tunning_data_dir, data_name)
+        if os.path.exists(os.path.join(Config.TUNE_DATA_PATH, data_name)):
+            return os.path.join(Config.TUNE_DATA_PATH, data_name)
         else:
             raise Exception("Can not find data with dataname = {}".format(data_name))
 
 
 def listData():
-    return [data_name for data_name in list(os.listdir(Config.tunning_data_dir))]
+    return [data_name for data_name in list(os.listdir(Config.TUNE_DATA_PATH))]
 
 
 def deleteFile(data_name):
-    if os.path.exists(os.path.join(Config.tunning_data_dir, data_name)):
-        os.system("rm -rf {}".format(os.path.join(Config.tunning_data_dir, data_name)))
+    if os.path.exists(os.path.join(Config.TUNE_DATA_PATH, data_name)):
+        os.system("rm -rf {}".format(os.path.join(Config.TUNE_DATA_PATH, data_name)))

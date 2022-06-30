@@ -18,7 +18,7 @@ def _adjustStep(param: dict):
 
     If step is not defined in param, use default value step = 1.
 
-    Adjust step to limit search space smaller than AlgoConfig.max_search_space
+    Adjust step to limit search space smaller than AlgoConfig.MAX_SEARCH_SPACE
 
     Args:
         param (dict): parameter dictionary
@@ -36,7 +36,7 @@ def _adjustStep(param: dict):
     else:
         step = default_step
 
-    while (param['range'][1] - param['range'][0]) / step > AlgoConfig.max_search_space:
+    while (param['range'][1] - param['range'][0]) / step > AlgoConfig.MAX_SEARCH_SPACE:
         step *= 2
 
     return step
@@ -144,13 +144,13 @@ class HORD(OptimizerUnit):
             pySOT.surrogate: surrogate in pySOT
         """
         # Choose surrogate of HORD
-        if AlgoConfig.hord_surrogate == 'RBFInterpolant':
+        if AlgoConfig.SURROGATE == 'RBFInterpolant':
             return surrogate.RBFInterpolant
 
-        elif AlgoConfig.hord_surrogate == 'PolyRegressor':
+        elif AlgoConfig.SURROGATE == 'PolyRegressor':
             return surrogate.PolyRegressor
 
-        elif AlgoConfig.hord_surrogate == 'GPRegressor':
+        elif AlgoConfig.SURROGATE == 'GPRegressor':
             return surrogate.GPRegressor
 
         else:
@@ -165,16 +165,16 @@ class HORD(OptimizerUnit):
         Returns:
             pySOT.strategy: strategy in pySOT
         """
-        if AlgoConfig.hord_strategy == 'DYCORSStrategy':
+        if AlgoConfig.STRATEGY == 'DYCORSStrategy':
             return strategy.DYCORSStrategy
 
-        elif AlgoConfig.hord_strategy == 'SRBFStrategy':
+        elif AlgoConfig.STRATEGY == 'SRBFStrategy':
             return strategy.SRBFStrategy
 
-        elif AlgoConfig.hord_strategy == 'SOPStrategy':
+        elif AlgoConfig.STRATEGY == 'SOPStrategy':
             return strategy.SOPStrategy
 
-        elif AlgoConfig.hord_strategy == 'EIStrategy' and AlgoConfig.hord_surrogate == 'GPRegressor':
+        elif AlgoConfig.STRATEGY == 'EIStrategy' and AlgoConfig.SURROGATE == 'GPRegressor':
             return strategy.EIStrategy
 
         else:
