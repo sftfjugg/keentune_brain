@@ -12,7 +12,7 @@ from brain.common.config import AlgoConfig
 from brain.common import pylog
 
 
-@pylog.logit
+@pylog.functionLog
 def _adjustStep(param: dict):
     """ Get step of params and adjust it.
 
@@ -43,7 +43,7 @@ def _adjustStep(param: dict):
 
 
 class Problem(OptimizationProblem):
-    @pylog.logit
+    @pylog.functionLog
     def __init__(self, knobs: list, max_iteration: int):
         """ Init HORD problem to solve.
 
@@ -60,7 +60,7 @@ class Problem(OptimizationProblem):
 
         self.buildSearchSpace(knobs)
 
-    @pylog.logit
+    @pylog.functionLog
     def buildSearchSpace(self, knobs: list):
         """ Build HORD parameter search space.
 
@@ -96,7 +96,7 @@ class Problem(OptimizationProblem):
         self.int_var = np.array(self.int_var)
         self.cont_var = np.array(self.cont_var)
 
-    @pylog.logit
+    @pylog.functionLog
     def eval(self, config):
         """ Evaluate a config
 
@@ -120,7 +120,7 @@ class Problem(OptimizationProblem):
 
 
 class HORD(OptimizerUnit):
-    @pylog.logit
+    @pylog.functionLog
     def __init__(self, 
                  opt_name: str, 
                  max_iteration: int,
@@ -136,7 +136,7 @@ class HORD(OptimizerUnit):
         self.process = Process(target=self._fit, args=(self.problem,))
         self.process.start()
 
-    @pylog.logit
+    @pylog.functionLog
     def __getSurrogate(self):
         """ choose surrogate of pySOT
 
@@ -156,7 +156,7 @@ class HORD(OptimizerUnit):
         else:
             return surrogate.RBFInterpolant
 
-    @pylog.logit
+    @pylog.functionLog
     def __getStrategy(self):
         """ choose strategy for HORD
 
@@ -180,7 +180,7 @@ class HORD(OptimizerUnit):
         else:
             return strategy.DYCORSStrategy
 
-    @pylog.logit
+    @pylog.functionLog
     def _fit(self, problem):
         self.controller = ThreadController()
         ''' create and reset surrogate '''
@@ -212,17 +212,17 @@ class HORD(OptimizerUnit):
 
         return result
 
-    @pylog.logit
+    @pylog.functionLog
     def acquireImpl(self):
         configuration = self.problem.configuration_pipe[1].recv()
         return configuration, 1.0
 
-    @pylog.logit
+    @pylog.functionLog
     def feedbackImpl(self, iteration, loss):
         if iteration <= self.dim * 2:
             self.sigma = 1
         self.problem.loss_pipe[0].send(loss)
 
-    @pylog.logit
+    @pylog.functionLog
     def msg(self):
         return "HORD Optimizer(v1.0)"

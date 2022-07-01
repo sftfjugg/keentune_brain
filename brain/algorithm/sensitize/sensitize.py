@@ -12,7 +12,7 @@ from brain.common import pylog
 from brain.common.dataset import DataSet
 from brain.common.config import Config
 
-@pylog.logit
+@pylog.functionLog
 def _parseSenstizeResult(sensitize_results, knobs):
     """Transfor sensitize_weight dict to response result
 
@@ -34,7 +34,7 @@ def _parseSenstizeResult(sensitize_results, knobs):
     return [knobs_selected[sorted_indice.index(i)] for i in range(len(params))]
 
 
-@pylog.logit
+@pylog.functionLog
 def _sensitizeSelect(sensitize_weight, topN=10, confidence_threshold=0.9):
     """Recommend sensitivity results
 
@@ -88,7 +88,7 @@ def _sensitizeSelect(sensitize_weight, topN=10, confidence_threshold=0.9):
 
 
 
-@pylog.logit
+@pylog.functionLog
 def _loadData(sensitize_data):
     """Load and prepare data for analyzing
 
@@ -118,7 +118,7 @@ def _loadData(sensitize_data):
     return X, y, params
 
 
-@pylog.logit
+@pylog.functionLog
 def _getStability(Z):
     """Compute stability according
 
@@ -147,7 +147,7 @@ def _getStability(Z):
     return stable
 
 
-@pylog.logit
+@pylog.functionLog
 def _computeStability(scores, params):
     """Compute two types of stability scores
 
@@ -215,7 +215,7 @@ def _computeStability(scores, params):
     pickle.dump(params_order[:, params_order_median_indice], open(params_order_file, 'wb+'))
 
 
-@pylog.logit
+@pylog.functionLog
 def _sensitizeImpl(sensitize_data, explainer='shap', trials=0, epoch=50, topN=10, threshold=0.9):
     """Implementation of sensitive parameter identification algorithm
 
@@ -238,7 +238,7 @@ def _sensitizeImpl(sensitize_data, explainer='shap', trials=0, epoch=50, topN=10
     return True, _parseSenstizeResult(sensitize_result, sensitize_data.knobs), sensi_file
 
 
-@pylog.logit
+@pylog.functionLog
 def _sensitizeRun(X, y, params, learner="xgboost", explainer="shap", epoch=50, trials=0, verbose=1):
     """Implementation of sensitive parameter identification algorithm
 
@@ -340,7 +340,7 @@ def _sensitizeRun(X, y, params, learner="xgboost", explainer="shap", epoch=50, t
     return result, sensi_file
 
 
-@pylog.logit
+@pylog.functionLog
 def sensitize(data_name="", explainer='shap', trials=0, epoch=50, topN=10, threshold=0.9):
     """Call sensitivity estimation algorithms
 

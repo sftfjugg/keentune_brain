@@ -1,4 +1,3 @@
-import json
 import logging
 import functools
 import traceback
@@ -54,12 +53,14 @@ except PermissionError:
 CALL_LEVEL = -1
 PLACEHOLDER = " " * 4
 
-def logit(func):
+
+def functionLog(func):
     """ Auto logging decorator to function calling
 
     Function is excepeted return tuple as (suc, data).
     Logging arguements of this function and return value.
-    logging traceback if exception occured in this function.
+    Handling all exception occured in this function, logging traceback and return False.
+
     """
     @functools.wraps(func)
     def wrapper(*args, **kw):
@@ -67,11 +68,11 @@ def logit(func):
         CALL_LEVEL += 1
 
         logger.debug("{placeholder}[{module}.{func}] << {args} {kw}".format(
-            placeholder=PLACEHOLDER*CALL_LEVEL,
-            module=func.__module__,
-            func=func.__qualname__,
-            args=",".join(["{}".format(_arg) for _arg in args]),
-            kw=",".join(["{} = {}".format(k, v) for k, v in kw.items()])))
+                    placeholder=PLACEHOLDER*CALL_LEVEL,
+                    module=func.__module__,
+                    func=func.__qualname__,
+                    args=",".join(["{}".format(_arg) for _arg in args]),
+                    kw=",".join(["{} = {}".format(k, v) for k, v in kw.items()])))
 
         try:
             out = func(*args, **kw)
@@ -82,46 +83,16 @@ def logit(func):
                 func=func.__qualname__,
                 trace=traceback.format_exc()))
             CALL_LEVEL -= 1
-            raise e
+            return False, e
 
         else:
             logger.debug("{placeholder}[{module}.{func}] >> {out}".format(
-                placeholder=PLACEHOLDER*CALL_LEVEL,
-                module=func.__module__,
-                func=func.__qualname__,
-                out=out))
+                placeholder = PLACEHOLDER*CALL_LEVEL,
+                module      = func.__module__,
+                func        = func.__qualname__,
+                out         = out
+            ))
+
             CALL_LEVEL -= 1
             return out
-
-    return wrapper
-
-
-def APILog(func):
-    """ Auto logging decorator for restful api.
-
-    Logging resquest data if api method is POST. 
-    Handling all exception occured in this function, logging traceback.
-
-    """
-    @functools.wraps(func)
-    def wrapper(*args, **kw):
-        obj = args[0]
-        if func.__name__ == "post":
-            input_data = json.loads(obj.request.body)
-            logger.info("{api_name} <== {input}".format(
-                api_name=func.__qualname__,
-                input=input_data))
-
-        else:
-            logger.info("{api_name} <== ".format(
-                api_name=func.__qualname__))
-
-        try:
-            func(*args, **kw)
-
-        except Exception as e:
-            logger.critical("{api_name} {trace}".format(
-                api_name=func.__qualname__,
-                trace=traceback.format_exc()))
-
     return wrapper

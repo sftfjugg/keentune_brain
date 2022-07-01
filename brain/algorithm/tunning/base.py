@@ -11,7 +11,7 @@ from brain.common.config import Config
 from brain.common import pylog
 
 
-@pylog.logit
+@pylog.functionLog
 def softmax(x):
     e_max = sum(np.exp(x))
     e_x = np.exp(x)
@@ -19,7 +19,7 @@ def softmax(x):
     return softmax_x
 
 
-@pylog.logit
+@pylog.functionLog
 def _config2pts(config: dict, knobs: list):
     pts = []
     for param in knobs:
@@ -67,7 +67,7 @@ class OptimizerUnit(metaclass=ABCMeta):
         rho (float) : Increase rate of sigma.
 
     """
-    @pylog.logit
+    @pylog.functionLog
     def __init__(self, 
                 opt_name: str, 
                 max_iteration: int, 
@@ -125,7 +125,7 @@ class OptimizerUnit(metaclass=ABCMeta):
         self.rho = 1.005 ** (500 / self.max_iteration)
 
 
-    @pylog.logit
+    @pylog.functionLog
     def _getLoss(self, bench_score: dict, iteration: int):
         """Calculate loss value by benchmark score
 
@@ -168,7 +168,7 @@ class OptimizerUnit(metaclass=ABCMeta):
         return loss_parts
 
 
-    @pylog.logit
+    @pylog.functionLog
     def acquire(self):
         """Acquire a candidate and budget
 
@@ -245,7 +245,7 @@ class OptimizerUnit(metaclass=ABCMeta):
         pass
 
 
-    @pylog.logit
+    @pylog.functionLog
     def feedback(self, iteration: int, bench_score: dict):
         """Feedback a benchmark score.
 
@@ -307,7 +307,7 @@ class OptimizerUnit(metaclass=ABCMeta):
         pass
 
 
-    @pylog.logit
+    @pylog.functionLog
     def best(self):
         """Get bese candidate up to new
 
@@ -330,7 +330,7 @@ class OptimizerUnit(metaclass=ABCMeta):
         return best_iteration, best_candidate, best_bench
 
     
-    @pylog.logit
+    @pylog.functionLog
     def __savefile(self):
         if not os.path.exists(self.folder_path):
             os.makedirs(self.folder_path)

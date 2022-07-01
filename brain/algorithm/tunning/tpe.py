@@ -10,7 +10,7 @@ from brain.common import pylog
 
 
 class TPE(OptimizerUnit):
-    @pylog.logit
+    @pylog.functionLog
     def __init__(self, 
                  opt_name: str, 
                  max_iteration: int,
@@ -51,7 +51,7 @@ class TPE(OptimizerUnit):
         self.process.start()
 
 
-    @pylog.logit
+    @pylog.functionLog
     def __searchSpace(self):
         """Build hyperopt search space
         """
@@ -83,7 +83,7 @@ class TPE(OptimizerUnit):
 
         return search_space
 
-    @pylog.logit
+    @pylog.functionLog
     def _observe(self, trail_point):
         """tuning target funciton
 
@@ -106,7 +106,7 @@ class TPE(OptimizerUnit):
         loss = self.loss_pipe[1].recv()
         return loss
 
-    @pylog.logit
+    @pylog.functionLog
     def acquireImpl(self):
         """Acquire a candidate from this optimizer.
 
@@ -116,7 +116,7 @@ class TPE(OptimizerUnit):
         """
         return self.config_pipe[1].recv(), 1.0
 
-    @pylog.logit
+    @pylog.functionLog
     def feedbackImpl(self, iteration: int, loss: float):
         """Feedback a benchmark score and candidate to this optimizer
 
@@ -127,7 +127,7 @@ class TPE(OptimizerUnit):
         """
         self.loss_pipe[0].send(loss)
 
-    @pylog.logit
+    @pylog.functionLog
     def msg(self):
         """Get message of this optimizer.
 
