@@ -1,6 +1,7 @@
 import logging
 import functools
 import traceback
+import os
 
 from brain.common.config import Config
 
@@ -48,7 +49,7 @@ try:
     _initLogger()
 except PermissionError:
     print("[PERMISSION ERROR] NO Permissions to init Log File!")
-    exit(0)
+    os._exit(0)
 
 CALL_LEVEL = -1
 PLACEHOLDER = " " * 4

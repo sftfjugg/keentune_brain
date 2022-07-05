@@ -1,7 +1,7 @@
 import tornado
+import os
 
 from brain.controller import tunning, sensi, system
-
 from brain.common.config import Config
 
 """
@@ -37,3 +37,9 @@ def main():
     
     print("KeenTune AI-Engine running...")
     tornado.ioloop.IOLoop.instance().start()
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        os._exit(0)
