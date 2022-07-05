@@ -12,11 +12,11 @@
 .\".
 .TH "keentune-brain" "8" "5 May 2022" "OpenAnolis KeenTune SIG" "KeenTune"
 .SH NAME
-KeenTune-brain - AI tuning Engine of 'KeenTune' system parameter optimization system
+KeenTune-brain - AI tuning Engine of 'KeenTune' system parameter optimization product
 .SH SYNOPSIS
 \fBKeenTune-brain\fP
 .SH DESCRIPTION
-\fBKeenTune-brain\fR KeenTune-brain is an AI tuning Engine of 'KeenTune' system parameter optimization system. KeenTune-brain implements a variety of intelligent tuning algorithms. It generates a candidate configuration for KeenTune system, obtains an evaluation from Keentune-bench, and gives the optimal parameter configuration. Mainly implement init, acquire, feedback, best, end these interfaces.
+\fBKeenTune-brain\fR KeenTune-brain is an AI tuning Engine of 'KeenTune' system parameter optimization product. KeenTune-brain implements a variety of intelligent tuning algorithms. It iterates between generating a candidate configuration and receiving the corresponding evaluation result from the Keentune-bench. It finally recommend the optimal parameter configuration. Its core methods include init, acquire, feedback, and best.
 .
 .SH "init"
 Initialize the optimizer.
@@ -25,13 +25,13 @@ Initialize the optimizer.
 Acquire a configuration candidate.
 .
 .SH "feedback"
-Feedback benchmark performance score to latest configuration candidate.
+Feedback the benchmark performance score of applying the latest configuration candidate.
 .
 .SH "best"
-Get best configuration.
+Get the optimal configuration.
 .
 .SH "end"
-End the optimizer active.
+Stop the optimizer.
 .
 .SH "Run"
 .
