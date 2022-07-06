@@ -103,7 +103,7 @@ class sensitizeHandler(RequestHandler):
                 suc, sensitize_result, sensi_file_path = yield self._sensitizeImpl(
                     data_name = request_data['data'], 
                     trials    = int(request_data['trials']),
-                    explainer = request_data['request_data']
+                    explainer = request_data['explainer']
                 )
             else:
                 suc, sensitize_result, sensi_file_path = yield self._sensitizeImpl(
