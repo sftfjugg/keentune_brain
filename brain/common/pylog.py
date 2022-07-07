@@ -69,20 +69,20 @@ def functionLog(func):
         CALL_LEVEL += 1
 
         logger.debug("{placeholder}[{module}.{func}] << {args} {kw}".format(
-                    placeholder=PLACEHOLDER*CALL_LEVEL,
-                    module=func.__module__,
-                    func=func.__qualname__,
-                    args=",".join(["{}".format(_arg) for _arg in args]),
-                    kw=",".join(["{} = {}".format(k, v) for k, v in kw.items()])))
+                    placeholder = PLACEHOLDER*CALL_LEVEL,
+                    module      = func.__module__,
+                    func        = func.__qualname__,
+                    args        = ",".join(["{}".format(_arg) for _arg in args]),
+                    kw          = ",".join(["{} = {}".format(k, v) for k, v in kw.items()])))
 
         try:
             out = func(*args, **kw)
 
         except Exception as e:
             logger.error('[{module}.{func}] {trace}'.format(
-                module=func.__module__,
-                func=func.__qualname__,
-                trace=traceback.format_exc()))
+                module  = func.__module__,
+                func    = func.__qualname__,
+                trace   = traceback.format_exc()))
             CALL_LEVEL -= 1
             return out
 
