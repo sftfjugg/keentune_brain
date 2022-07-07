@@ -1,12 +1,7 @@
 import os
 import logging
-import sys
 
 from configparser import ConfigParser
-
-if os.geteuid() != 0:
-    print("Superuser permissions are required to run the daemon.", file=sys.stderr)
-    sys.exit(1)
 
 LOGLEVEL = {
     "DEBUG"     : logging.DEBUG,
