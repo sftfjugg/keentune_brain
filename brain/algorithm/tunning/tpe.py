@@ -10,10 +10,9 @@ from brain.common import pylog
 
 
 class TPE(OptimizerUnit):
-    @pylog.logit
+    @pylog.functionLog
     def __init__(self, 
                  opt_name: str, 
-                 opt_type: str,
                  max_iteration: int,
                  knobs: list, 
                  baseline: dict):
@@ -25,7 +24,7 @@ class TPE(OptimizerUnit):
             max_iteration (int): tuning max iteration
         """
 
-        super(TPE, self).__init__(opt_name, opt_type, max_iteration, knobs, baseline)
+        super(TPE, self).__init__(opt_name, max_iteration, knobs, baseline)
         
         self.trials = hyperopt.Trials()
         self.config_pipe = Pipe()
@@ -52,7 +51,7 @@ class TPE(OptimizerUnit):
         self.process.start()
 
 
-    @pylog.logit
+    @pylog.functionLog
     def __searchSpace(self):
         """Build hyperopt search space
         """
@@ -68,7 +67,7 @@ class TPE(OptimizerUnit):
 
             elif param.__contains__('range') and param['dtype'] == 'int':
                 step = param['step'] if param.__contains__('step') else 1
-                while (param['range'][1] - param['range'][0]) / step >= AlgoConfig.max_search_space:
+                while (param['range'][1] - param['range'][0]) / step >= AlgoConfig.MAX_SEARCH_SPACE:
                     step *= 2
                 chioce_table = list(
                     range(param['range'][0], param['range'][1], step))
@@ -84,7 +83,7 @@ class TPE(OptimizerUnit):
 
         return search_space
 
-    @pylog.logit
+    @pylog.functionLog
     def _observe(self, trail_point):
         """tuning target funciton
 
@@ -107,7 +106,7 @@ class TPE(OptimizerUnit):
         loss = self.loss_pipe[1].recv()
         return loss
 
-    @pylog.logit
+    @pylog.functionLog
     def acquireImpl(self):
         """Acquire a candidate from this optimizer.
 
@@ -117,7 +116,7 @@ class TPE(OptimizerUnit):
         """
         return self.config_pipe[1].recv(), 1.0
 
-    @pylog.logit
+    @pylog.functionLog
     def feedbackImpl(self, iteration: int, loss: float):
         """Feedback a benchmark score and candidate to this optimizer
 
@@ -128,7 +127,7 @@ class TPE(OptimizerUnit):
         """
         self.loss_pipe[0].send(loss)
 
-    @pylog.logit
+    @pylog.functionLog
     def msg(self):
         """Get message of this optimizer.
 

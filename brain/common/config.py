@@ -9,71 +9,52 @@ if os.geteuid() != 0:
     sys.exit(1)
 
 LOGLEVEL = {
-    "DEBUG": logging.DEBUG,
-    "INFO": logging.INFO,
-    "WARNING": logging.WARNING,
-    "ERROR": logging.ERROR
+    "DEBUG"     : logging.DEBUG,
+    "INFO"      : logging.INFO,
+    "WARNING"   : logging.WARNING,
+    "ERROR"     : logging.ERROR
 }
 
 conf_file_path = "/etc/keentune/conf/brain.conf"
 conf = ConfigParser()
 conf.read(conf_file_path)
-print("Read config: {}".format(conf_file_path))
-
+print("Loading config in {}".format(conf_file_path))
 
 class AlgoConfig:
-    # Algorithm.base
-    max_search_space = int(conf['algorithm']['max_search_space'])
-
-    # Algorithm.hord
-    hord_surrogate = conf['hord']['surrogate']
-    hord_strategy = conf['hord']['strategy']
+    # Tune
+    MAX_SEARCH_SPACE = int(conf['tune']['MAX_SEARCH_SPACE'])
+    SURROGATE = conf['tune']['SURROGATE']
+    STRATEGY  = conf['tune']['STRATEGY']
 
     # Sensitize
-    sensi_explainer = conf['sensi']['explainer']
-    sensi_trials    = int(conf['sensi']['trials'])
-    sensi_epoch     = int(conf['sensi']['epoch'])
-    sensi_topN    = int(conf['sensi']['topN'])
-    sensi_threshold     = float(conf['sensi']['threshold'])
+    EPOCH     = int(conf['sensitize']['EPOCH'])
+    TOPN      = int(conf['sensitize']['TOPN'])
+    THRESHOLD = float(conf['sensitize']['THRESHOLD'])
+
+    # TODO: remove the config item
+    EXPLAINER = 'shap'
 
 
 class Config:
-    keentune_home = conf['home']['keentune_home']
-    keentune_workspace = conf['home']['keentune_workspace']
-    print("KeenTune Home: {}".format(keentune_home))
-    print("KeenTune Workspace: {}".format(keentune_workspace))
-
-    brain_port = conf['brain']['algo_port']
-    graph_port = conf['brain']['graph_port']
+    KEENTUNE_HOME       = conf['brain']['KEENTUNE_HOME']
+    KEENTUNE_WORKSPACE  = conf['brain']['KEENTUNE_WORKSPACE']
+    BRAIN_PORT          = conf['brain']['BRAIN_PORT']
+    
+    print("KeenTune Home: {}".format(KEENTUNE_HOME))
+    print("KeenTune Workspace: {}".format(KEENTUNE_WORKSPACE))
 
     # workdir
-    data_dir = os.path.join(keentune_workspace, 'data')
-    graph_tmp_dir = os.path.join(data_dir, "tmp_graph")
-    sensi_data_dir = os.path.join(data_dir, "sensi_data")
-    tunning_data_dir = os.path.join(data_dir, "tuning_data")
+    SENSI_DATA_PATH = os.path.join(KEENTUNE_WORKSPACE,'data', 'sensi_data')
+    TUNE_DATA_PATH  = os.path.join(KEENTUNE_WORKSPACE,'data', 'tuning_data')
 
     # Log
-    logfile_path = conf['log']['logfile_path']
-    console_level = LOGLEVEL[conf['log']['console_level']]
-    logfile_level = LOGLEVEL[conf['log']['logfile_level']]
-    logfile_interval = int(conf['log']['logfile_interval'])
-    logfile_backup_count = int(conf['log']['logfile_backup_count'])
+    LOGFILE_PATH         = conf['log']['LOGFILE_PATH']
+    _LOG_DIR = os.path.dirname(LOGFILE_PATH)
+    CONSOLE_LEVEL        = LOGLEVEL[conf['log']['CONSOLE_LEVEL']]
+    LOGFILE_LEVEL        = LOGLEVEL[conf['log']['LOGFILE_LEVEL']]
+    LOGFILE_INTERVAL     = int(conf['log']['LOGFILE_INTERVAL'])
+    LOGFILE_BACKUP_COUNT = int(conf['log']['LOGFILE_BACKUP_COUNT'])
 
-    if not os.path.exists(keentune_workspace):
-        os.makedirs(keentune_workspace)
-
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir)
-
-    if not os.path.exists(graph_tmp_dir):
-        os.makedirs(graph_tmp_dir)
-
-    if not os.path.exists(tunning_data_dir):
-        os.makedirs(tunning_data_dir)
-
-    if not os.path.exists(sensi_data_dir):
-        os.makedirs(sensi_data_dir)
-
-    log_dir = os.path.dirname(logfile_path)
-    if not os.path.exists(log_dir):
-        os.makedirs(log_dir)
+    for _PATH in [KEENTUNE_WORKSPACE, TUNE_DATA_PATH, SENSI_DATA_PATH, _LOG_DIR]:
+        if not os.path.exists(_PATH):
+            os.makedirs(_PATH)

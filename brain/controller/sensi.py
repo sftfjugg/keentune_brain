@@ -1,5 +1,6 @@
 import json
 import traceback
+import pickle 
 
 from brain.algorithm.sensitize.sensitize import sensitize
 from brain.common.config import AlgoConfig
@@ -55,22 +56,22 @@ class sensitizeHandler(RequestHandler):
 
 
     @run_on_executor
-    def _sensitizeImpl(self, data_name, trials):
+    def _sensitizeImpl(self, data_name, trials, explainer = AlgoConfig.EXPLAINER):
         try:
-            suc, sensitize_result = sensitize(
+            suc, sensitize_result, sensi_file = sensitize(
                 data_name = data_name, 
                 trials    = trials, 
-                explainer = AlgoConfig.sensi_explainer, 
-                epoch     = AlgoConfig.sensi_epoch, 
-                topN      = AlgoConfig.sensi_topN,
-                threshold = AlgoConfig.sensi_threshold
+                explainer = explainer, 
+                epoch     = AlgoConfig.EPOCH, 
+                topN      = AlgoConfig.TOPN,
+                threshold = AlgoConfig.THRESHOLD
             )
 
         except Exception as e:
-            return False, "{}".format(e)
+            return False, "{}".format(e), ""
         
         else:
-            return suc, sensitize_result
+            return suc, sensitize_result, sensi_file
 
 
     @coroutine
@@ -97,24 +98,24 @@ class sensitizeHandler(RequestHandler):
                 "suc": True,"msg": "Sensitive parameter identification is running"}))
             self.finish()
 
-            suc, out = yield self._sensitizeImpl(request_data['data'], int(request_data['trials']))
-            if suc:
-                response_data = {"suc": suc, "result": out, "msg": ""}
+            # TODO: remove if condition in v1.3.0
+            if request_data.__contains__('explainer'):
+                suc, sensitize_result, sensi_file_path = yield self._sensitizeImpl(
+                    data_name = request_data['data'], 
+                    trials    = int(request_data['trials']),
+                    explainer = request_data['explainer']
+                )
             else:
-                response_data = {"suc": suc, "result": [], "msg": out}
+                suc, sensitize_result, sensi_file_path = yield self._sensitizeImpl(
+                    data_name = request_data['data'], 
+                    trials    = int(request_data['trials'])
+                )
+
+            if suc:
+                head = ",".join([i['name'] for i in sensitize_result])
+                data = pickle.load(open(sensi_file_path,'rb')).tolist()
+                response_data = {"suc": suc, "head": head, "result": data, "msg": ""}
+            else:
+                response_data = {"suc": suc, "head": "", "result": [], "msg": sensitize_result}
 
             _, _ = yield self._response(response_data, request_data['resp_ip'], request_data['resp_port'])
-
-
-class sensiGraphHandler(RequestHandler):
-    def get(self):
-        from brain.visualization.sensiGraph import getSensiGraph
-        suc, html_file_path = getSensiGraph()
-        if not suc:
-            self.write("get sensi graph failed:{}".format(html_file_path))
-            self.set_status(200)
-            self.finish()
-
-        else:
-            self.render(html_file_path)
-            self.set_status(200)
