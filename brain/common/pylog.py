@@ -84,7 +84,7 @@ def functionLog(func):
                 func=func.__qualname__,
                 trace=traceback.format_exc()))
             CALL_LEVEL -= 1
-            return False, e
+            return out
 
         else:
             logger.debug("{placeholder}[{module}.{func}] >> {out}".format(
