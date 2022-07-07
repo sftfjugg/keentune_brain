@@ -20,7 +20,7 @@ def _parseSenstizeResult(sensitize_results, knobs):
         sensitize_results (tuple): (a list of sorted parameter names, a list of sorted weights, confidence)
         knobs (list): a knob list selected by sensitivity
     """
-    (params, weights, confidence) = sensitize_results
+    (params, weights, _) = sensitize_results
     knobs_selected = []
     sorted_indice = []
     for knob in knobs:
@@ -72,7 +72,7 @@ def _sensitizeSelect(sensitize_weight, topN=10, confidence_threshold=0.9):
     weights_cumsum = np.cumsum(np.array(weights_sorted))
     try:
         index = np.where(weights_cumsum >= confidence_threshold)[0][0]
-    except IndexError as e:
+    except IndexError:
         index = 0
     k = topN if topN <= index else index + 1
     confidence = weights_cumsum[k - 1]
