@@ -23,26 +23,30 @@ pyInstaller can build KeenTune-brain as a binary file. We can run pyInstaller as
 After install KeenTune-brain by setuptools or pyInstaller, we can find configuration file in **/etc/keentune/conf/brain.conf**
 ```conf
 [brain]
-KEENTUNE_HOME = /etc/keentune/                  # KeenTune-brain install path.
-KEENTUNE_WORKSPACE = /var/keentune/             # KeenTune-brain user file workspace.
-BRAIN_PORT = 9872                               # KeenTune-brain listening port.
+# Basic Configuration
+KeenTune_HOME       = /etc/keentune/    ; KeenTune-brain install path.
+KeenTune_WORKSPACE  = /var/keentune/    ; KeenTune-brain workspace.
+BRAIN_PORT          = 9872              ; KeenTune-brain service port
 
-[log]
-CONSOLE_LEVEL = ERROR                           # Log level of console.
-LOGFILE_LEVEL = DEBUG                           # Log level of logfile.
-LOGFILE_PATH  = /var/log/keentune/brain.log     # Logfile saving path.
-LOGFILE_INTERVAL = 1                            
-LOGFILE_BACKUP_COUNT = 14
-
-[tune]
-MAX_SEARCH_SPACE = 1000
-SURROGATE = RBFInterpolant
-STRATEGY  = DYCORSStrategy
+[tuning]
+# Auto-tuning Algorithm Configuration.
+MAX_SEARCH_SPACE    = 1000              ; Limitation of the Max-number of available value of a single knob to avoid dimension explosion.
+SURROGATE           = RBFInterpolant    ; Surrogate in tuning algorithm - HORD 
+STRATEGY            = DYCORSStrategy    ; Strategy in tuning algorithm - HORD 
 
 [sensitize]
-EPOCH = 5
-TOPN = 10
-THRESHOLD = 0.9
+# Sensitization Algorithm Configuration.
+EPOCH       = 5         ; Modle train epoch in Sensitization Algorithm, improve the accuracy and running time
+TOPN        = 10        ; The top number to select sensitive knobs.
+THRESHOLD   = 0.9       ; The sensitivity threshold to select sensitive knobs.
+
+[log]
+# Configuration about log
+LOGFILE_PATH        = /var/log/keentune/brain.log   ; Log file of brain
+CONSOLE_LEVEL       = INFO                          ; Console Log level
+LOGFILE_LEVEL       = DEBUG                         ; File saved log level
+LOGFILE_INTERVAL    = 1                             ; The interval of log file replacing
+LOGFILE_BACKUP_COUNT= 14                            ; The count of backup log file  
 ```
 
 ### Run
@@ -75,3 +79,36 @@ Parameter tuning algorithm implemented based on the GP agent model and the SMBO 
 #### HORD(Radial Basis Function and Dynamic coordinate search)
 Parameter tuning algorithm based on the RBF agent model and Dycors，KeenTune use[pySOT](https://github.com/dme65/pySOT) implement the HORD algorithm
 [HORD](https://github.com/ilija139/HORD)  
+
+## Code structure
+```
+brain/
+├── algorithm           # Algorithm module
+│   ├── __init__.py
+│   ├── sensitize           # Sensitization Algorithm
+│   │   ├── __init__.py
+│   │   ├── sensitize.py
+│   │   └── sensitizer.py
+│   └── tunning             # Auto-Tuning Algorithm
+│       ├── base.py
+│       ├── hord.py
+│       ├── __init__.py
+│       ├── random.py
+│       └── tpe.py
+├── common              # Common module, includes log, config and tools.
+│   ├── config.py
+│   ├── dataset.py
+│   ├── __init__.py
+│   ├── pylog.py
+│   ├── system.py
+│   └── tools.py
+├── controller          # Service response module.
+│   ├── __init__.py
+│   ├── sensi.py
+│   ├── system.py
+│   └── tunning.py
+├── brain.conf          # Configuration file
+├── brain.py            # Entrance of keentune-brain
+└── __init__.py
+5 directories, 22 files
+```
