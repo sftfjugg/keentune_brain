@@ -1,9 +1,9 @@
 # KeenTune Brain  
-## Introduction
 ---  
+### Introduction
 KeenTune-brain is an AI tuning Engine of 'KeenTune' system parameter optimization system. KeenTune-brain implements a variety of intelligent tuning algorithms. It generates a candidate configuration for KeenTune system, obtains an evaluation from Keentune-brain, and gives the optimal parameter configuration.
 
-## Build & Install
+### Build & Install
 Setuptools can build KeenTune-brain as a python lib. We can run setuptools as  
 ```s
 >> pip3 install setuptools
@@ -53,16 +53,16 @@ or depoly KeenTune-brain by systemctl
 ```
 **NOTE**: You need copy the file 'keentune-brain.service' to '/usr/lib/systemd/system' manually, if you installed the keentune-brain by 'setuptools' rather then 'yum install'.
 
+---
 ## Algorithm
----   
 ### Sensitive Parameter Detection Algorithm
-### Linear regression model - ElasticNet
+#### Linear regression model - ElasticNet
 Used to capture the apparent linear correlation between the parameters and the tuning results.ElasticnNet can be trained quickly, and combined with the introduction of the multi-round identification section, the selection of linear models can ensure that the overall algorithm execution efficiency is still high in the case of multiple rounds of identification.  
 
-### Univariate mutual information - Mutual Information
+#### Univariate mutual information - Mutual Information
 Use to capture linear / nonlinear correlations between single parameters and tuning results, to avoid underreporting of sensitive parameters due to parameter redundancy.  
 
-### Non-linear model-XGBoost + Explainable AI algorithm-SHAP
+#### Non-linear model-XGBoost + Explainable AI algorithm-SHAP
 It is used to capture the complex nonlinear relationship between parameters and tuning results, and to quantify the correlations captured by the black-box nonlinear model through an interpretable AI algorithm.  
 
 ### Tuning Algorithm
@@ -74,6 +74,7 @@ Parameter tuning algorithm implemented based on the GP agent model and the SMBO 
 Parameter tuning algorithm based on the RBF agent model and Dycors，KeenTune use[pySOT](https://github.com/dme65/pySOT) implement the HORD algorithm
 [HORD](https://github.com/ilija139/HORD)  
 
+---
 ## Code structure
 ```
 brain/
