@@ -16,10 +16,10 @@ conf.read(conf_file_path)
 print("Loading config in {}".format(conf_file_path))
 
 class AlgoConfig:
-    # Tune
-    MAX_SEARCH_SPACE = int(conf['tune']['MAX_SEARCH_SPACE'])
-    SURROGATE = conf['tune']['SURROGATE']
-    STRATEGY  = conf['tune']['STRATEGY']
+    # Auto-Tuning
+    MAX_SEARCH_SPACE = int(conf['tuning']['MAX_SEARCH_SPACE'])
+    SURROGATE = conf['tuning']['SURROGATE']
+    STRATEGY  = conf['tuning']['STRATEGY']
 
     # Sensitize
     EPOCH     = int(conf['sensitize']['EPOCH'])
