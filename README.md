@@ -75,7 +75,7 @@ Parameter tuning algorithm based on the RBF agent model and Dycors，KeenTune us
 [HORD](https://github.com/ilija139/HORD)  
 
 ---
-## Code structure
+## Code Structure
 ```
 brain/
 ├── algorithm           # Algorithm module
