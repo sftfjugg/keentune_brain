@@ -4,20 +4,13 @@
 KeenTune-brain is an AI tuning Engine of 'KeenTune' system parameter optimization system. KeenTune-brain implements a variety of intelligent tuning algorithms. It generates a candidate configuration for KeenTune system, obtains an evaluation from Keentune-brain, and gives the optimal parameter configuration.
 
 ## Build & Install
-### By setuptools
 Setuptools can build KeenTune-brain as a python lib. We can run setuptools as  
 ```s
 >> pip3 install setuptools
 >> python3 setup.py install
+>> pip3 install -r requirements.txt
 ```
-
-### By pyInstaller
-pyInstaller can build KeenTune-brain as a binary file. We can run pyInstaller as  
-```s
->> pip3 install pyInstaller
->> make
->> make install
-```
+See More Details about the dependencies of keentune-brain in [<Dependencies of KeenTune>](https://gitee.com/anolis/keentuned/blob/doc-0704/docs/install/Dependencies_cn.md)
 
 ### Configuration
 After install KeenTune-brain by setuptools or pyInstaller, we can find configuration file in **/etc/keentune/conf/brain.conf**
