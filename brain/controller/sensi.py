@@ -66,7 +66,7 @@ class sensitizeHandler(RequestHandler):
                 topN      = AlgoConfig.TOPN,
                 threshold = AlgoConfig.THRESHOLD
             )
-
+            pylog.logger.info("Get sensitize result: {} saved in {}.".format(sensitize_result, sensi_file))
         except Exception as e:
             return False, "{}".format(e), ""
         
@@ -81,35 +81,33 @@ class sensitizeHandler(RequestHandler):
             assert request_data.__contains__('resp_ip')
             assert request_data.__contains__('resp_port')
             assert request_data.__contains__('data')
+            assert request_data.__contains__('explainer')
 
         request_data = json.loads(self.request.body)
-        pylog.logger.info("get configure request: {}".format(request_data))
-
+        pylog.logger.info("get sensitize request: {}".format(request_data))
+        
         try:
             _validField(request_data)
         
         except Exception as e:
-            pylog.logger.error("Failed to response request: {}".format(e))
-            self.write(json.dumps({"suc" : False, "msg": str(e)}))
+            pylog.logger.error("Failed to runing sensitizing algorithm: {}".format(e))
+            self.write(json.dumps({
+                "suc" : False, 
+                "msg": str(e)}))
             self.finish()
 
         else:
+            pylog.logger.info("Runing sensitizing algorithm.")
             self.write(json.dumps({
-                "suc": True,"msg": "Sensitive parameter identification is running"}))
+                "suc": True,
+                "msg": "Sensitive parameter identification is running"}))
             self.finish()
 
-            # TODO: remove if condition in v1.3.0
-            if request_data.__contains__('explainer'):
-                suc, sensitize_result, sensi_file_path = yield self._sensitizeImpl(
-                    data_name = request_data['data'], 
-                    trials    = int(request_data['trials']),
-                    explainer = request_data['explainer']
-                )
-            else:
-                suc, sensitize_result, sensi_file_path = yield self._sensitizeImpl(
-                    data_name = request_data['data'], 
-                    trials    = int(request_data['trials'])
-                )
+            suc, sensitize_result, sensi_file_path = yield self._sensitizeImpl(
+                data_name = request_data['data'], 
+                trials    = int(request_data['trials']),
+                explainer = request_data['explainer']
+            )
 
             if suc:
                 head = ",".join([i['name'] for i in sensitize_result])
