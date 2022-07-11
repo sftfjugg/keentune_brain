@@ -51,6 +51,7 @@ or depoly KeenTune-brain by systemctl
 ```s
 >> systemctl start keentune-brain
 ```
+**NOTE**: You need copy the file 'keentune-brain.service' to '/usr/lib/systemd/system' manually, if you installed the keentune-brain by 'setuptools' rather then 'yum install'.
 
 ## Algorithm
 ---   
