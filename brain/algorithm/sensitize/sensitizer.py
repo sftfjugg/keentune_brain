@@ -8,7 +8,7 @@ from sklearn.metrics import mean_absolute_percentage_error
 from brain.common import pylog
 
 class Learner(object):
-    @pylog.logit
+    @pylog.functionLog
     def __init__(self,name,epoch=100):
         """Initializer
            Args: name (string): name of learning model, only support xgboost for now
@@ -39,7 +39,7 @@ class Learner(object):
             pylog.logger.info("Support xgboost for now, current learner {} is not supported".format(self.name))
             raise AttributeError
 
-    @pylog.logit
+    @pylog.functionLog
     def run(self, X_train, y_train, X_test, y_test):
         """Implementation of training and evaluating learning model
             Args:
@@ -64,7 +64,7 @@ class Learner(object):
         return scoring_func(y_test.ravel(), self.model.predict(X_test))
 
 class Explainer(object):
-    @pylog.logit
+    @pylog.functionLog
     def __init__(self, name='shap'):
         """Initializer, only used for explaining nonlinear learning models
             Args: name (string): name of explaining model, only support shap and explain
@@ -73,7 +73,7 @@ class Explainer(object):
         """
         self.name = name
     
-    @pylog.logit
+    @pylog.functionLog
     def run(self, learner, X, params, base_x=None):
         """Implementation explaining nonlinear learning models
             Args:
@@ -125,7 +125,7 @@ class Explainer(object):
         return sensi.squeeze()
 
 class Analyzer(object):
-    @pylog.logit
+    @pylog.functionLog
     def __init__(self,
                  params,
                  seed=None,
@@ -175,7 +175,7 @@ class Analyzer(object):
         data = np.where(np.abs(data)>epsilon, data, epsilon)
         return data
 
-    @pylog.logit
+    @pylog.functionLog
     def explain_gp(self, X_train, y_train, X_test, y_test):
         """use iTuned methods for sensitization
         Args:
@@ -208,7 +208,7 @@ class Analyzer(object):
         sensi = sensi / np.sum(np.abs(sensi))
         return performance, sensi
     
-    @pylog.logit
+    @pylog.functionLog
     def explain_lasso(self, X_train, y_train, X_test, y_test):
         """Implement linear explainer with Lasso
         Args:
@@ -231,7 +231,7 @@ class Analyzer(object):
         sensi = sensi / np.sum(np.abs(sensi))
         return performance,sensi
 
-    @pylog.logit
+    @pylog.functionLog
     def explain_univariate(self, X, y):
         """Implement univariate explainer
         Args:
@@ -248,7 +248,7 @@ class Analyzer(object):
         sensi = self.remove_null(model.scores_)
         return sensi
 
-    @pylog.logit
+    @pylog.functionLog
     def explain_nonlinear(self, X_train, y_train, X_test, y_test):
         """Implement nonlinear explainer
         Args:
@@ -273,7 +273,7 @@ class Analyzer(object):
                               base_x=self.base_x)
         return performance, self.remove_null(sensi)
 
-    @pylog.logit
+    @pylog.functionLog
     def run(self, X, y):
         """Implement explaining method which ensemble lasso, univariate, and shap explainers
         Args:

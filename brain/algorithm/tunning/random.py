@@ -5,16 +5,15 @@ from brain.common import pylog
 
 
 class Random(OptimizerUnit):
-    @pylog.logit
+    @pylog.functionLog
     def __init__(self,
                  opt_name: str,
-                 opt_type: str,
                  max_iteration: int,
                  knobs: list,
                  baseline: dict):
-        super(Random, self).__init__(opt_name, opt_type, max_iteration, knobs, baseline)
+        super(Random, self).__init__(opt_name, max_iteration, knobs, baseline)
 
-    @pylog.logit
+    @pylog.functionLog
     def acquireImpl(self):
         config = {}
         for param in self.knobs:
@@ -35,10 +34,10 @@ class Random(OptimizerUnit):
                 
         return config, 1.0
 
-    @pylog.logit
+    @pylog.functionLog
     def feedbackImpl(self, iteration: int, loss: float):
         pass
 
-    @pylog.logit
+    @pylog.functionLog
     def msg(self):
         return "Random"

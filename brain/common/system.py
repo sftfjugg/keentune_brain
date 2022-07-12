@@ -1,7 +1,7 @@
 import subprocess
 from brain.common import pylog
 
-@pylog.logit
+@pylog.functionLog
 def sysCommand(command: str, cwd: str = "./"):
     '''Run system command with subprocess.run and return result
     '''

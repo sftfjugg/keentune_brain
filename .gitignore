@@ -2,3 +2,5 @@ build/
 dist/
 keentune_brain.egg-info/
 **/__pycache__/
+bin/
+.vscode/
