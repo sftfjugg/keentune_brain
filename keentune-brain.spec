@@ -1,4 +1,4 @@
-%define anolis_release 0
+%define anolis_release 1
 
 Name:           keentune-brain
 Version:        1.3.0
@@ -38,6 +38,8 @@ Auto-Tunning algorithm module of KeenTune
 
 mkdir -p ${RPM_BUILD_ROOT}/usr/lib/systemd/system/
 cp -f ./keentune-brain.service ${RPM_BUILD_ROOT}/usr/lib/systemd/system/
+install -D -m 0644 man/keentune-brain.8 ${RPM_BUILD_ROOT}%{_mandir}/man8/keentune-brain.8
+install -D -m 0644 man/keentune-brain.conf.5 ${RPM_BUILD_ROOT}%{_mandir}/man5/keentune-brain.conf.5
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -60,8 +62,13 @@ fi
 %doc README.md
 %license LICENSE
 %{_prefix}/lib/systemd/system/keentune-brain.service
+%{_mandir}/man8/keentune-brain.8*
+%{_mandir}/man5/keentune-brain.conf.5*
 
 %changelog
+* Thu Jul 21 2022 Runzhe Wang <runzhe.wrz@alibaba-inc.com> - 1.3.0-1
+- fix: missing of man dir  
+
 * Thu Jun 30 2022 Runzhe Wang <runzhe.wrz@alibaba-inc.com> - 1.3.0-0
 - add /avaliable api
 - refactor brain.conf
