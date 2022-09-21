@@ -4,7 +4,7 @@ long_description = ""
 
 setup(
     name        = "keentune-brain",
-    version     = "1.3.0",
+    version     = "1.4.0",
     description = "KeenTune brain unit",
     url         = "https://gitee.com/anolis/keentune_brain",
     license     = "MulanPSLv2",
