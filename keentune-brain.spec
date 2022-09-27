@@ -4,7 +4,7 @@ Name:           keentune-brain
 Version:        1.3.0
 Release:        %{?anolis_release}%{?dist}
 Url:            https://gitee.com/anolis/keentune_brain
-Summary:        Auto-Tunning algorithm module of KeenTune
+Summary:        Auto-Tuning algorithm module of KeenTune
 Vendor:         Alibaba
 License:        MulanPSLv2
 Group:          Development/Languages/Python
@@ -22,7 +22,7 @@ Requires(preun): systemd
 Requires(postun): systemd
 
 %description
-Auto-Tunning algorithm module of KeenTune
+Auto-Tuning algorithm module of KeenTune
 
 %prep
 %autosetup -n %{name}-%{version}
