@@ -56,13 +56,17 @@ class sensitizeHandler(RequestHandler):
 
 
     @run_on_executor
-    def _sensitizeImpl(self, data_name, trials, explainer = AlgoConfig.EXPLAINER):
+    def _sensitizeImpl(self, 
+                       data_name, 
+                       trials, 
+                    #    explainer = AlgoConfig.EXPLAINER
+                       ):
         try:
             suc, sensitize_result, sensi_file = sensitize(
                 data_name = data_name, 
                 trials    = trials, 
-                explainer = explainer, 
-                epoch     = AlgoConfig.EPOCH, 
+                # explainer = explainer, 
+                # epoch     = AlgoConfig.EPOCH, 
                 topN      = AlgoConfig.TOPN,
                 threshold = AlgoConfig.THRESHOLD
             )
@@ -81,7 +85,7 @@ class sensitizeHandler(RequestHandler):
             assert request_data.__contains__('resp_ip')
             assert request_data.__contains__('resp_port')
             assert request_data.__contains__('data')
-            assert request_data.__contains__('explainer')
+            # assert request_data.__contains__('explainer')
 
         request_data = json.loads(self.request.body)
         pylog.logger.info("get sensitize request: {}".format(request_data))
@@ -106,7 +110,7 @@ class sensitizeHandler(RequestHandler):
             suc, sensitize_result, sensi_file_path = yield self._sensitizeImpl(
                 data_name = request_data['data'], 
                 trials    = int(request_data['trials']),
-                explainer = request_data['explainer']
+                # explainer = request_data['explainer']
             )
 
             if suc:

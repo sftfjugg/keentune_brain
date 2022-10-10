@@ -1,4 +1,4 @@
-VERSION 	= 1.3.0
+VERSION 	= 1.4.1
 PREFIX     ?= /usr
 CONFDIR    ?= /etc
 OUTPATH	    = ./bin
@@ -16,7 +16,6 @@ target:
 		--distpath $(OUTPATH) \
 		--specpath $(TPMPATH) \
 		--hidden-import brain.algorithm.tunning.base \
-		--hidden-import brain.algorithm.tunning.tpe \
 		--hidden-import brain.algorithm.tunning.hord \
 		--hidden-import brain.algorithm.tunning.random \
 		--hidden-import brain.algorithm.sensitize.sensitize \

@@ -216,7 +216,7 @@ def _computeStability(scores, params):
 
 
 @pylog.functionLog
-def _sensitizeImpl(sensitize_data, explainer='shap', trials=0, epoch=50, topN=10, threshold=0.9):
+def _sensitizeImpl(sensitize_data, trials=0, topN=10, threshold=0.9):
     """Implementation of sensitive parameter identification algorithm
 
     Args:
@@ -227,9 +227,9 @@ def _sensitizeImpl(sensitize_data, explainer='shap', trials=0, epoch=50, topN=10
                           e.g., sensitize_result = {"parameter_name": float value}
     """
     X, y, params = _loadData(sensitize_data)
-    sensitize_result, sensi_file = _sensitizeRun(X=X, y=y, params=params, 
-                                    learner="xgboost", explainer=explainer, 
-                                    epoch=epoch, trials=trials)
+    
+    sensitize_result, sensi_file = _sensitizeRun(X=X, y=y, params=params, trials=trials)
+    
     sensitize_result = _sensitizeSelect(sensitize_weight=sensitize_result, 
                                         topN=topN,
                                         confidence_threshold=threshold)
@@ -239,7 +239,7 @@ def _sensitizeImpl(sensitize_data, explainer='shap', trials=0, epoch=50, topN=10
 
 
 @pylog.functionLog
-def _sensitizeRun(X, y, params, learner="xgboost", explainer="shap", epoch=50, trials=0, verbose=1):
+def _sensitizeRun(X, y, params, trials=0, verbose=1):
     """Implementation of sensitive parameter identification algorithm
 
     Args:
@@ -266,39 +266,20 @@ def _sensitizeRun(X, y, params, learner="xgboost", explainer="shap", epoch=50, t
     # use_xx flag controls the use of specific explaining algorithms (gp, lasso, univariate, shap).
     # To use multiple explaining algorithms at the same time, edit the flags here.
     # Future consider control these flags through sensitize interface
-    use_gp = True if explainer=='gp' else False
-    use_lasso = True if explainer=='lasso' else False
-    (use_shap, use_univariate) = (True, True) if (explainer=='shap') or (explainer=='explain') else (False, False)
-    use_univariate = True if (explainer=='univariate') or (use_univariate==True) else False
-    
-    # if none specified, use shap as default
-    if not (use_gp or use_lasso or use_univariate or use_shap):
-        use_shap, use_univariate = True, True
-        learner, explainer = "xgboost", "shap"
-
-    if epoch is None or epoch <= 1:
-        epoch = 50
-
 
     log = {}
     sensi = np.zeros((trials, len(params)))
-    log['learner'] = learner
-    log['explainer'] = explainer
+    log['learner'] = ""
+    log['explainer'] = "lasso"
     log['parameters'] = params
     
     for i, s in enumerate(seeds):
         # initialize sensitier
         sensitizer = Analyzer(params=params,
-                              seed=s,
-                              use_gp=use_gp,
-                              use_lasso=use_lasso,
-                              use_univariate=use_univariate,
-                              use_shap=use_shap,
-                              learner_name=learner,
-                              explainer_name=explainer,
-                              epoch=epoch)
+                              seed=s)
         # run sensitizer with collected data
         sensitizer.run(X, y)
+        
         if verbose > 0:
             log[i] = {}
             log[i]['seed'] = s
@@ -312,10 +293,7 @@ def _sensitizeRun(X, y, params, learner="xgboost", explainer="shap", epoch=50, t
                     pylog.logger.info("trial:{}, {} sensitivity: {}".format(i, k, sensitizer.sensi[k]))
                     print("trial:{}, {} sensitivity: {}".format(i, k, sensitizer.sensi[k]))
 
-        if explainer not in ['gp','lasso','univariate']:
-            sensi[i] = sensitizer.sensi['aggregated']
-        else:
-            sensi[i] = sensitizer.sensi[explainer]
+        sensi[i] = sensitizer.sensi["lasso"]
 
     dump_folder_path = os.path.join(
         Config.SENSI_DATA_PATH, 
@@ -341,7 +319,12 @@ def _sensitizeRun(X, y, params, learner="xgboost", explainer="shap", epoch=50, t
 
 
 @pylog.functionLog
-def sensitize(data_name="", explainer='shap', trials=0, epoch=50, topN=10, threshold=0.9):
+def sensitize(data_name="", 
+            #   explainer='shap', 
+              trials=0, 
+            #   epoch=50, 
+              topN=10, 
+              threshold=0.9):
     """Call sensitivity estimation algorithms
 
         Args:
@@ -357,7 +340,6 @@ def sensitize(data_name="", explainer='shap', trials=0, epoch=50, topN=10, thres
             sensitize_result (dict): a dictionary containing sensitivity scores for recommended parameters
             sensi_file: the path to detialed sensi data from all trials
     """
-
     try:
         sensitize_data = DataSet(data_name)
     
@@ -365,7 +347,7 @@ def sensitize(data_name="", explainer='shap', trials=0, epoch=50, topN=10, thres
         return False, "Can not load data to sensitize: {}".format(e)
     
     else:
-        suc, sensitize_result, sensi_file = _sensitizeImpl(sensitize_data, explainer, trials, epoch, topN, threshold)
+        suc, sensitize_result, sensi_file = _sensitizeImpl(sensitize_data, trials, topN, threshold)
         if not suc:
             return False, "Get sensitive parameter failed: {}".format(sensitize_result), ""
 
