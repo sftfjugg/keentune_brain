@@ -38,9 +38,9 @@ class InitHandler(RequestHandler):
         if request_data['algorithm'].lower() not in AVALIABLE_ALGORITHM:
             raise Exception("unkonwn algorithm {}".format(request_data['algorithm']))
 
-        # if request_data['algorithm'].lower() == 'tpe':
-        #     from brain.algorithm.tunning.tpe import TPE
-        #     _ALGORITHM = TPE
+        if request_data['algorithm'].lower() == 'tpe':
+            from brain.algorithm.tunning.tpe import TPE
+            _ALGORITHM = TPE
 
         if request_data['algorithm'].lower() == 'hord':
             from brain.algorithm.tunning.hord import HORD

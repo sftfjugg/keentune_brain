@@ -17,6 +17,7 @@ target:
 		--specpath $(TPMPATH) \
 		--hidden-import brain.algorithm.tunning.base \
 		--hidden-import brain.algorithm.tunning.hord \
+		--hidden-import brain.algorithm.tunning.tpe \
 		--hidden-import brain.algorithm.tunning.random \
 		--hidden-import brain.algorithm.sensitize.sensitize \
 		--hidden-import brain.algorithm.sensitize.sensitizer \
