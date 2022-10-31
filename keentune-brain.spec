@@ -1,7 +1,7 @@
 %define anolis_release 1
 
 Name:           keentune-brain
-Version:        1.3.0
+Version:        1.4.0
 Release:        %{?anolis_release}%{?dist}
 Url:            https://gitee.com/anolis/keentune_brain
 Summary:        Auto-Tuning algorithm module of KeenTune
@@ -66,6 +66,9 @@ fi
 %{_mandir}/man5/keentune-brain.conf.5*
 
 %changelog
+* Mon Oct 31 2022 Runzhe Wang <runzhe.wrz@alibaba-inc.com> - 1.4.0-1
+- fix: add requirements of numpy and tornado
+
 * Thu Jul 21 2022 Runzhe Wang <runzhe.wrz@alibaba-inc.com> - 1.3.0-1
 - fix: missing of man dir  
 
