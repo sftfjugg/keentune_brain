@@ -45,11 +45,7 @@ install -D -m 0644 man/keentune-brain.conf.5 ${RPM_BUILD_ROOT}%{_mandir}/man5/ke
 rm -rf $RPM_BUILD_ROOT
 
 %post
-%systemd_post keentune-brain.service
-if [ -f "%{_prefix}/lib/systemd/system/keentune-brain.service" ]; then
-    systemctl enable keentune-brain.service || :
-    systemctl start keentune-brain.service || :
-fi
+systemctl daemon-reload
 
 %preun
 %systemd_preun keentune-brain.service
