@@ -16,7 +16,7 @@ BUildRequires:	systemd
 
 BuildArch:      noarch
 
-Requires:	python3-tornado
+Requires:	python3-tornado, python3-numpy
 Requires(post): systemd
 Requires(preun): systemd
 Requires(postun): systemd
