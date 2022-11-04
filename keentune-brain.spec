@@ -1,7 +1,7 @@
 %define anolis_release 1
 
 Name:           keentune-brain
-Version:        1.3.0
+Version:        1.4.0
 Release:        %{?anolis_release}%{?dist}
 Url:            https://gitee.com/anolis/keentune_brain
 Summary:        Auto-Tuning algorithm module of KeenTune
@@ -16,7 +16,7 @@ BUildRequires:	systemd
 
 BuildArch:      noarch
 
-Requires:	python3-tornado
+Requires:	python3-tornado, python3-numpy
 Requires(post): systemd
 Requires(preun): systemd
 Requires(postun): systemd
@@ -45,11 +45,7 @@ install -D -m 0644 man/keentune-brain.conf.5 ${RPM_BUILD_ROOT}%{_mandir}/man5/ke
 rm -rf $RPM_BUILD_ROOT
 
 %post
-%systemd_post keentune-brain.service
-if [ -f "%{_prefix}/lib/systemd/system/keentune-brain.service" ]; then
-    systemctl enable keentune-brain.service || :
-    systemctl start keentune-brain.service || :
-fi
+systemctl daemon-reload
 
 %preun
 %systemd_preun keentune-brain.service
@@ -66,6 +62,9 @@ fi
 %{_mandir}/man5/keentune-brain.conf.5*
 
 %changelog
+* Mon Oct 31 2022 Runzhe Wang <runzhe.wrz@alibaba-inc.com> - 1.4.0-1
+- fix: add requirements of numpy and tornado
+
 * Thu Jul 21 2022 Runzhe Wang <runzhe.wrz@alibaba-inc.com> - 1.3.0-1
 - fix: missing of man dir  
 
