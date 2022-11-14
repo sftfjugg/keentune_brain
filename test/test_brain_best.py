@@ -56,7 +56,7 @@ class TestBrainBest(unittest.TestCase):
         
         result = requests.post(url, data=json.dumps(data), headers=headers, proxies=self.proxies)
         self.assertEqual(result.status_code, 200)
-        self.assertEqual(result.text, '{"suc": true, "msg": ""}')
+        self.assertIn('"suc": true', result.text)
 
         url = "http://{}:{}/{}".format("localhost", "9872", "acquire")
         result = requests.get(url, proxies=self.proxies)
@@ -75,13 +75,13 @@ class TestBrainBest(unittest.TestCase):
         
         result = requests.post(url, data=json.dumps(data), headers=headers, proxies=self.proxies)
         self.assertEqual(result.status_code, 200)
-        self.assertEqual(result.text, '{"suc": true, "msg": ""}')
+        self.assertIn('"suc": true', result.text)
 
     def tearDown(self) -> None:
         url = "http://{}:{}/{}".format("localhost", "9872", "end")
         result = requests.get(url, proxies=self.proxies)
         self.assertEqual(result.status_code, 200)
-        self.assertEqual(result.text, '{"suc": true, "msg": ""}')
+        self.assertIn('"suc": true', result.text)
 
     def test_brain_server_FUN_best(self):
         url = "http://{}:{}/{}".format("localhost", "9872", "best")
