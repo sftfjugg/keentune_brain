@@ -56,7 +56,7 @@ class TestBrainFeedback(unittest.TestCase):
         
         result = requests.post(url, data=json.dumps(data), headers=headers, proxies=self.proxies)
         self.assertEqual(result.status_code, 200)
-        self.assertEqual(result.text, '{"suc": true, "msg": ""}')
+        self.assertIn('"suc": true', result.text)
 
         url = "http://{}:{}/{}".format("localhost", "9872", "acquire")
         result = requests.get(url, proxies=self.proxies)
@@ -82,4 +82,4 @@ class TestBrainFeedback(unittest.TestCase):
         
         result = requests.post(url, data=json.dumps(data), headers=headers, proxies=self.proxies)
         self.assertEqual(result.status_code, 200)
-        self.assertEqual(result.text, '{"suc": true, "msg": ""}')
+        self.assertIn('"suc": true', result.text)

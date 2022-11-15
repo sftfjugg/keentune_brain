@@ -21,7 +21,8 @@ class TestBrainSensitize(unittest.TestCase):
                     "data": "",
                     "trials": 1,
                     "resp_ip": "localhost",
-                    "resp_port": "9871"
+                    "resp_port": "9871",
+                    "explainer": "shap"
                 }
 
         headers = {"Content-Type": "application/json"}
