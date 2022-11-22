@@ -66,7 +66,7 @@ class TPE(OptimizerUnit):
                     param['name'], param['sequence'])
 
             elif param.__contains__('range') and param['dtype'] == 'int':
-                step = param['step'] if param.__contains__('step') else 1
+                step = param['step'] if param.__contains__('step') and param['step'] else 1
                 while (param['range'][1] - param['range'][0]) / step >= AlgoConfig.MAX_SEARCH_SPACE:
                     step *= 2
                 chioce_table = list(
