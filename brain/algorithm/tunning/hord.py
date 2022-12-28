@@ -31,7 +31,7 @@ def _adjustStep(param: dict):
     else:
         default_step = 1
 
-    if param.__contains__('step'):
+    if param.__contains__('step') and param['step'] is not None:
         step = max(default_step, param['step'])
     else:
         step = default_step
