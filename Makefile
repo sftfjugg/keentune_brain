@@ -1,4 +1,4 @@
-VERSION 	= 1.5.0
+VERSION 	= 2.0
 PREFIX     ?= /usr
 CONFDIR    ?= /etc
 OUTPATH	    = ./bin
