@@ -2,8 +2,7 @@ import numpy as np
 import random as python_random
 
 from copy import deepcopy
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_absolute_percentage_error
+
 
 from brain.common import pylog
 
@@ -49,6 +48,8 @@ class Learner(object):
                 y_test (numpy arary): test label for regression
         """
         from sklearn.model_selection import RandomizedSearchCV,KFold
+        from sklearn.metrics import mean_absolute_percentage_error
+        
         scoring = "neg_mean_absolute_error"  # "neg_mean_absolute_percentage_error"
         scoring_func = mean_absolute_percentage_error
         kfold = KFold(n_splits=5, shuffle=True, random_state=self.seed)
@@ -283,6 +284,7 @@ class Analyzer(object):
         Return:
             normalized sensitivity scores
         """
+        from sklearn.model_selection import train_test_split
         # split training and testing data for building learning and explaining models
         X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.75, random_state=self.seed)
 
