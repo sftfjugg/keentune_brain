@@ -37,7 +37,7 @@ class TPE(OptimizerUnit):
             None,                   # timeout: None or int
             None,                   # loss_threshold : early-stop if loss is small enough
             self.trials,            # trials : evaluation points
-            np.random.RandomState() # rstate : random seed
+            np.random.RandomState(),# rstate : random seed
             False,                  # verbose
             False,                  # allow_trials_fmin
             False,                  # pass_expr_memo_ctrl
