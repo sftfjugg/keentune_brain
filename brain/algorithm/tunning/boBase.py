@@ -8,6 +8,7 @@ from brain.common import pylog
 from keenopt.sample_func.sample_func import to_unit_cube
 from keenopt.sample_func.sample_func import random as randfunc
 from keenopt.sample_func.sample_func import from_unit_cube
+from keenopt.searchspace.searchspace import SearchSpace
 
 from brain.common import pylog
 
@@ -42,6 +43,7 @@ class BOOptimizer(OptimizerUnit):
         """
         
         super().__init__(opt_name,  max_iteration, knobs, baseline)
+        self.init_search_space()
         
         self.strategy    = strategy
         self.surrogate   = surrogate
@@ -66,6 +68,15 @@ class BOOptimizer(OptimizerUnit):
         self.untrain_x = np.zeros(shape = (0, self.searchspace.dim))
         self.untrain_fx = np.zeros(shape = (0, 1))
         self.model_initialized = False
+
+
+    def init_search_space(self):
+        """Initialize search space
+        """
+        parameters = {}
+        for knob in self.knobs:
+            parameters[knob['name']] = knob
+        self.searchspace = SearchSpace(parameters)
 
     @pylog.functionLog
     def acquireConfiguration(self):

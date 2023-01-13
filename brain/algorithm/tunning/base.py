@@ -9,7 +9,6 @@ from abc import ABCMeta, abstractmethod
 
 from brain.common.config import Config
 from brain.common import pylog
-from keenopt.searchspace.searchspace import SearchSpace
 
 
 @pylog.functionLog
@@ -103,7 +102,6 @@ class OptimizerUnit(metaclass=ABCMeta):
 
         self.knobs = knobs
         self.dim = len(self.knobs)
-        self.init_search_space()
 
         self.iteration = -1
         self.max_iteration = max_iteration
@@ -123,13 +121,6 @@ class OptimizerUnit(metaclass=ABCMeta):
         self.sigma = 1
         self.rho = 1.005 ** (500 / self.max_iteration)
 
-    def init_search_space(self):
-        """Initialize search space
-        """
-        parameters = {}
-        for knob in self.knobs:
-            parameters[knob['name']] = knob
-        self.searchspace = SearchSpace(parameters)
 
 
     @pylog.functionLog
