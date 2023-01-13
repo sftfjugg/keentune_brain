@@ -1,7 +1,7 @@
 %define anolis_release 0
 
 Name:           keentune-brain
-Version:        2.0.0
+Version:        2.0.1
 Release:        %{?anolis_release}%{?dist}
 Url:            https://gitee.com/anolis/keentune_brain
 Summary:        Auto-Tuning algorithm module of KeenTune
@@ -62,6 +62,10 @@ systemctl daemon-reload
 %{_mandir}/man5/keentune-brain.conf.5*
 
 %changelog
+* Fri Jan 13 2023 Runzhe Wang <runzhe.wrz@alibaba-inc.com> - 2.0.1-0
+- fix randomseed
+- fix keentune_brain cannot start without sklearn
+
 * Thu Dec 29 2022 Runzhe Wang <runzhe.wrz@alibaba-inc.com> - 2.0.0-0
 - fix bug in step adjustment.
 
