@@ -188,6 +188,7 @@ class Analyzer(object):
             normalized sensitivity scores
         """
         from sklearn.gaussian_process import GaussianProcessRegressor
+        from sklearn.metrics import mean_absolute_percentage_error
         model = GaussianProcessRegressor(random_state=0,normalize_y=True).fit(X_train, y_train)
         y_true, y_pred = y_test.ravel(), model.predict(X_test)
         performance = mean_absolute_percentage_error(y_true, y_pred)
@@ -221,6 +222,7 @@ class Analyzer(object):
             normalized sensitivity scores
         """
         from sklearn.linear_model import LassoCV, Lasso
+        from sklearn.metrics import mean_absolute_percentage_error
         lassocv = LassoCV(alphas=None, cv=5, max_iter=100000, normalize=True)
         lassocv.fit(X_train, y_train)
         model = Lasso(max_iter=10000, normalize=True)
