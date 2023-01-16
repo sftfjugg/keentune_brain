@@ -25,7 +25,7 @@ Requires(postun): systemd
 Auto-Tuning algorithm module of KeenTune
 
 %prep
-%autosetup -n %{name}-%{version}
+%setup -n %{name}-%{version}
 
 %build
 %{__python3} setup.py build
@@ -45,13 +45,13 @@ install -D -m 0644 man/keentune-brain.conf.5 ${RPM_BUILD_ROOT}%{_mandir}/man5/ke
 rm -rf $RPM_BUILD_ROOT
 
 %post
-systemctl daemon-reload
+%systemd_post keentune-brain.service
 
 %preun
 %systemd_preun keentune-brain.service
 
 %postun
-%systemd_postun_with_restart keentune-brain.service
+%systemd_postun keentune-brain.service
 
 %files -f INSTALLED_FILES
 %defattr(-,root,root)
