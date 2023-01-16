@@ -25,7 +25,7 @@ Requires(postun): systemd
 Auto-Tuning algorithm module of KeenTune
 
 %prep
-%setup -n %{name}-%{version}
+%autosetup -n %{name}-%{version}
 
 %build
 %{__python3} setup.py build
