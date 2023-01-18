@@ -1,4 +1,4 @@
-%define anolis_release 0
+%define anolis_release 1
 
 Name:           keentune-brain
 Version:        2.0.1
@@ -62,7 +62,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man5/keentune-brain.conf.5*
 
 %changelog
-* Fri Jan 13 2023 Runzhe Wang <runzhe.wrz@alibaba-inc.com> - 2.0.1-0
+* Fri Jan 13 2023 Runzhe Wang <runzhe.wrz@alibaba-inc.com> - 2.0.1-1
 - fix randomseed
 - fix keentune_brain cannot start without sklearn
 
