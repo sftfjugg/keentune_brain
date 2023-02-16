@@ -3,7 +3,8 @@ from tornado.web import RequestHandler
 from brain.common.pylog import logger
 
 OPTIMIZER = None
-AVALIABLE_ALGORITHM = ['tpe', 'hord', 'random']
+#AVALIABLE_ALGORITHM = ['tpe', 'hord', 'random']
+AVALIABLE_ALGORITHM = ['tpe', 'hord', 'random', 'lamcts', 'bgcs']
 
 class InitHandler(RequestHandler):
     """ Init optimizer object.
@@ -49,6 +50,16 @@ class InitHandler(RequestHandler):
         if request_data['algorithm'].lower() == 'random':
             from brain.algorithm.tunning.random import Random
             _ALGORITHM = Random
+
+
+        if request_data['algorithm'].lower() == 'lamcts':
+            from brain.algorithm.tunning.lamcts import LamctsOptim
+            _ALGORITHM = LamctsOptim
+
+
+        if request_data['algorithm'].lower() == 'bgcs':
+            from brain.algorithm.tunning.bgcs import BgcsOptim
+            _ALGORITHM = BgcsOptim
 
         return _ALGORITHM(
             opt_name      = request_data['name'], 

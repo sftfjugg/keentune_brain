@@ -1,5 +1,6 @@
 import re  
 import os 
+import sys
 from datetime import datetime
 
 """ warpping the KeenTune module keentune-brain
@@ -73,4 +74,8 @@ if __name__ == "__main__":
     if os.path.exists("keentune-brain-{}".format(version_in_spec)):
         os.system("rm -rf keentune-brain-{}".format(version_in_spec))
 
-    os.system("cp {} ./".format(os.path.join(source_dir, "keentune-brain.spec")))
+    if sys.argv.__len__() > 1 and sys.argv[1] == "a23":
+        os.system("cp {} ./".format(os.path.join(source_dir, "keentune-brain.a23.spec")))
+        os.system("mv keentune-brain.a23.spec keentune-brain.spec".format())
+    else:
+        os.system("cp {} ./".format(os.path.join(source_dir, "keentune-brain.spec")))

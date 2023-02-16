@@ -46,12 +46,16 @@ rm -rf $RPM_BUILD_ROOT
 
 %post
 %systemd_post keentune-brain.service
+if [ -f "%{_prefix}/lib/systemd/system/keentune-brain.service" ]; then
+    systemctl enable keentune-brain.service || :
+    systemctl start keentune-brain.service || :
+fi
 
 %preun
 %systemd_preun keentune-brain.service
 
 %postun
-%systemd_postun keentune-brain.service
+%systemd_postun_with_restart keentune-brain.service
 
 %files -f INSTALLED_FILES
 %defattr(-,root,root)
