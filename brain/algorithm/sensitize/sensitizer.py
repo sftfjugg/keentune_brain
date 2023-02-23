@@ -65,10 +65,11 @@ class Learner(object):
 
 class Explainer(object):
     @pylog.functionLog
-    def __init__(self, name='shap'):
+    def __init__(self, name='xsen'):
         """Initializer, only used for explaining nonlinear learning models
-            Args: name (string): name of explaining model, only support shap and explain
+            Args: name (string): name of explaining model, support shap, explain, and xsen
                   shap is a open source black box explainer.
+                  xsen is a combined method with shap and univariate
                   explain is learner's self-explain method. For xgboost, here use total_gain.
         """
         self.name = name
@@ -83,7 +84,7 @@ class Explainer(object):
             Return:
                 sensi values (numpy array)
         """
-        if (self.name == "shap") or (self.name is None):
+        if (self.name in ["xsen","shap"]) or (self.name is None):
             try:
                 from shap import KernelExplainer
             except ImportError:
@@ -97,7 +98,7 @@ class Explainer(object):
             explainer = KernelExplainer(learner.model.predict, background)
             sensi = explainer.shap_values(X)
             sensi = np.mean(sensi, axis=0)
-        elif self.name == "explain":
+        elif self.name == "xgboost":
             # use xgboost's self-explaining method, which support :
             # * 'weight': the number of times a feature is used to split the data across all trees.
             # * 'gain': the average gain across all splits the feature is used in.
@@ -119,7 +120,7 @@ class Explainer(object):
                 pylog.logger.info("Support dict and numpy ndarray as the output format for sensi scores")
                 raise TypeError
         else:
-            pylog.logger.info("Support shap and explain, current explainer {} is not supported".format(self.name))
+            pylog.logger.info("Support xsen, shap and explain, current explainer {} is not supported".format(self.name))
             raise AttributeError
 
         return sensi.squeeze()
@@ -131,10 +132,12 @@ class Analyzer(object):
                  seed=None,
                  use_gp=False,
                  use_lasso=False,
-                 use_univariate=True,
-                 use_shap=True,
+                 use_univariate=False,
+                 use_xgboost=False,
+                 use_shap=False,
+                 use_xsen=True,
                  learner_name='xgboost',
-                 explainer_name='shap',
+                 explainer_name='xsen',
                  epoch=100):
         """Initializer
         Args:
@@ -151,7 +154,9 @@ class Analyzer(object):
         self.use_gp = use_gp
         self.use_lasso = use_lasso
         self.use_univariate = use_univariate
+        self.use_xgboost = use_xgboost
         self.use_shap = use_shap
+        self.use_xsen = use_xsen
         self.learner_name = learner_name
         self.explainer_name = explainer_name
         self.epoch = epoch
@@ -289,34 +294,45 @@ class Analyzer(object):
         if self.use_gp:
             self.learner_performance['gp'], self.sensi['gp'] = self.explain_gp(X_train, y_train, X_test, y_test)
 
-        if self.use_lasso:
+        elif self.use_lasso:
             # use linear interpreter (default with Lasso)
             self.learner_performance['lasso'], self.sensi['lasso'] = self.explain_lasso(X_train, y_train, X_test, y_test)
 
-        if self.use_shap:
-            # use nonlinear interpreter
+        elif self.use_univariate:
+            # use univariate interpreter
+            self.sensi['univariate'] = self.explain_univariate(np.concatenate([X_train, X_test], axis=0),
+                                                               np.hstack((y_train,y_test)))
+            self.sensi['univariate'] = np.abs(self.sensi['univariate']) / np.sum(np.abs(self.sensi['univariate']))
+
+        elif self.use_xgboost:
+            self.base_x = None
+            self.learner_performance['xgboost'], self.sensi['xgboost'] = self.explain_nonlinear(X_train, y_train, X_test, y_test)
+            self.sensi['xgboost'] = self.sensi['xgboost'] / np.sum(np.abs(self.sensi['xgboost']))
+
+        elif self.use_xsen:
+            # use nonlinear interpreter xsen
+            # shap needs a reference point as the baseline for explanation
+            self.base_x = X[0]
+            self.learner_performance['xsen'], self.sensi['xsen'] = self.explain_nonlinear(X_train, y_train, X_test, y_test)
+
+            # use univariate values as gates, taking values from 1.0 to 2.0
+            # most univariate values are very small, need to scale up (by 2 for now), otherwise tanh(x) will be too small
+            sensi_scaler = self.explain_univariate(np.concatenate([X_train, X_test], axis=0),
+                                                   np.hstack((y_train,y_test)))
+            sensi_scaler = np.tanh(2.0 * sensi_scaler) + 1.0
+            sensi = self.sensi['xsen'] * sensi_scaler
+            sensi = sensi / np.sum(np.abs(sensi))
+            self.sensi['xsen'] = sensi.squeeze()
+            self.use_shap = False
+            self.use_univariate = False
+
+        else:
+            # use nonlinear interpreter shap
             # shap needs a reference point as the baseline for explanation
             self.base_x = X[0]
             self.learner_performance['shap'], self.sensi['shap'] = self.explain_nonlinear(X_train, y_train, X_test, y_test)
-
-            if self.use_univariate:
-                # use univariate values as gates, taking values from 1.0 to 2.0
-                # most univariate values are very small, need to scale up (by 2 for now), otherwise tanh(x) will be too small
-                self.sensi['univariate'] = self.explain_univariate(X_train, y_train)
-                sensi_scaler = np.tanh(2.0 * self.sensi['univariate']) + 1.0
-            else:
-                sensi_scaler = 1.0
-
-            sensi = self.sensi['shap'] * sensi_scaler
-            sensi = sensi / np.sum(np.abs(sensi))
-            self.sensi['aggregated'] = sensi.squeeze()
             self.sensi['shap'] = self.sensi['shap'] / np.sum(np.abs(self.sensi['shap']))
 
-        if self.use_univariate:
-            # use univariate interpreter
-            self.sensi['univariate'] = self.explain_univariate(X_train, y_train)
-            self.sensi['univariate'] = np.abs(self.sensi['univariate']) / np.sum(np.abs(self.sensi['univariate']))
-
         if len(self.sensi.keys()) <= 0:
-            pylog.logger.info("Support gp, univariate, lasso, shap, none is selected")
+            pylog.logger.info("Support gp, lasso, univariate, xgboost, shap, xsen, none is selected")
             raise AttributeError
