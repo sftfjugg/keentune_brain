@@ -5,7 +5,7 @@ from multiprocessing import Process, Queue
 
 from brain.common.pylog import logger
 from brain.controller import TUNING_PROCESS
-
+from brain.common.config import AlgoConfig
 
 class BrainProcess(Process):
     def __init__(self, 
@@ -127,7 +127,7 @@ class AcquireHandler(RequestHandler):
 
         try:
             TUNING_PROCESS.cmd_q.put("acquire")
-            iteration, candidate, budget = TUNING_PROCESS.out_q.get(timeout = 30)
+            iteration, candidate, budget = TUNING_PROCESS.out_q.get(timeout = AlgoConfig.ACQUIRE_TIMEOUT)
 
         except Exception as e:
             logger.error("Acquire failed: {}".format(e))
@@ -162,7 +162,7 @@ class FeedbackHandler(RequestHandler):
         try:
             TUNING_PROCESS.input_q.put((request_data['iteration'], request_data['bench_score']))
             TUNING_PROCESS.cmd_q.put("feedback")
-            time_data_line, benchmark_value_line = TUNING_PROCESS.out_q.get(timeout = 30)
+            time_data_line, benchmark_value_line = TUNING_PROCESS.out_q.get(timeout = AlgoConfig.FEEDBACK_TIMEOUT)
 
         except Exception as e:
             logger.error("Feedback failed: {}".format(e))
@@ -201,7 +201,7 @@ class BestHandler(RequestHandler):
 
         try:
             TUNING_PROCESS.cmd_q.put("best")
-            best_iteration, best_candidate, best_bench = TUNING_PROCESS.out_q.get(timeout = 30)
+            best_iteration, best_candidate, best_bench = TUNING_PROCESS.out_q.get(timeout = AlgoConfig.ACQUIRE_TIMEOUT)
 
         except Exception as e:
             logger.error("Get best config failed:{}".format(e))

@@ -20,14 +20,13 @@ class AlgoConfig:
     MAX_SEARCH_SPACE = int(conf['tuning']['MAX_SEARCH_SPACE'])
     SURROGATE = conf['tuning']['SURROGATE']
     STRATEGY  = conf['tuning']['STRATEGY']
+    ACQUIRE_TIMEOUT = int(conf['tuning']['ACQUIRE_TIMEOUT'])
+    FEEDBACK_TIMEOUT = int(conf['tuning']['FEEDBACK_TIMEOUT'])
 
     # Sensitize
     EPOCH     = int(conf['sensitize']['EPOCH'])
     TOPN      = int(conf['sensitize']['TOPN'])
     THRESHOLD = float(conf['sensitize']['THRESHOLD'])
-
-    # TODO: remove the config item
-    EXPLAINER = 'shap'
 
 
 class Config:
