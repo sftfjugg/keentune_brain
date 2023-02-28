@@ -340,7 +340,6 @@ def _sensitizeRun(X, y, params, learner="xgboost", explainer="shap", epoch=50, t
     return result, sensi_file
 
 
-@pylog.functionLog
 def sensitize(data_name="", explainer='shap', trials=0, epoch=50, topN=10, threshold=0.9):
     """Call sensitivity estimation algorithms
 
@@ -357,16 +356,8 @@ def sensitize(data_name="", explainer='shap', trials=0, epoch=50, topN=10, thres
             sensitize_result (dict): a dictionary containing sensitivity scores for recommended parameters
             sensi_file: the path to detialed sensi data from all trials
     """
-
-    try:
-        sensitize_data = DataSet(data_name)
-    
-    except Exception as e:
-        return False, "Can not load data to sensitize: {}".format(e)
-    
-    else:
-        suc, sensitize_result, sensi_file = _sensitizeImpl(sensitize_data, explainer, trials, epoch, topN, threshold)
-        if not suc:
-            return False, "Get sensitive parameter failed: {}".format(sensitize_result), ""
-
-        return True, sensitize_result, sensi_file
+    suc, sensitize_result, sensi_file = _sensitizeImpl(
+        DataSet(data_name), explainer, trials, epoch, topN, threshold)
+    if not suc:
+        raise Exception("{}".format(sensitize_result))
+    return sensitize_result, sensi_file

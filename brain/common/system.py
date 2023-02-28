@@ -1,7 +1,10 @@
+import requests
 import subprocess
-from brain.common import pylog
+import json
 
-@pylog.functionLog
+from brain.common.pylog import logger
+
+
 def sysCommand(command: str, cwd: str = "./"):
     '''Run system command with subprocess.run and return result
     '''
@@ -22,3 +25,20 @@ def sysCommand(command: str, cwd: str = "./"):
         return suc, error
     else:
         return suc, out
+
+
+def httpResponse(response_data, response_ip, response_port, response_api):
+    logger.info("send response to {ip}:{port}:{data}".format(
+        ip = response_ip,
+        port = response_port,
+        data = response_data
+    ))
+
+    try:
+        requests.post(
+            url = "http://{ip}:{port}/{api}".format(ip = response_ip, port = response_port, api = response_api),
+            data = json.dumps(response_data),
+            timeout = 3)
+        
+    except requests.exceptions.ConnectTimeout:
+        logger.warning("send response timeout!")
