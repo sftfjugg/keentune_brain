@@ -1,151 +1,137 @@
 import json
-from tornado.web import RequestHandler
-from brain.common.pylog import logger
 
-OPTIMIZER = None
-#AVALIABLE_ALGORITHM = ['tpe', 'hord', 'random']
-AVALIABLE_ALGORITHM = ['tpe', 'hord', 'random', 'lamcts', 'bgcs']
+from tornado.web import RequestHandler
+from multiprocessing import Process, Queue
+
+from brain.common.pylog import logger
+from brain.controller import TUNING_PROCESS
+
+
+class BrainProcess(Process):
+    def __init__(self, 
+                name, 
+                algorithm, 
+                iteration, 
+                parameters, 
+                baseline, 
+                rule_list):
+        
+        super(BrainProcess, self).__init__()
+        self.cmd_q, self.out_q, self.input_q = Queue(), Queue(), Queue()
+
+        if algorithm.lower() == "tpe":
+            from brain.algorithm.tunning.tpe import TPE
+            self.optimizer = TPE(name, iteration, parameters, baseline)
+
+        elif algorithm.lower() == "hord":
+            from brain.algorithm.tunning.hord import HORD
+            self.optimizer = HORD(name, iteration, parameters, baseline)
+
+        elif algorithm.lower() == "random":
+            from brain.algorithm.tunning.random import Random
+            self.optimizer = Random(name, iteration, parameters, baseline)
+        
+        elif algorithm.lower() == "lamcts":
+            from brain.algorithm.tunning.lamcts import LamctsOptim
+            self.optimizer = LamctsOptim(name, iteration, parameters, baseline)
+
+        elif algorithm.lower() == "bgcs":
+            from brain.algorithm.tunning.bgcs import BgcsOptim
+            self.optimizer = BgcsOptim(name, iteration, parameters, baseline)
+        else:
+            raise Exception("invalid algorithom: {}".format(algorithm))
+
+        head_param, head_bench, head_time = self.optimizer.getDataHead()
+        self.out_q.put((head_param, head_bench, head_time))
+
+    def run(self):
+        ''' process.start() '''
+
+        logger.info("Create tuning process, pid = {}".format(self.pid))
+        while True:
+            cmd = self.cmd_q.get()
+            if cmd == "acquire":
+                iteration, candidate, budget = self.optimizer.acquire()
+                logger.info("[{}] acquire candidate: {}".format(self.pid, candidate))
+                self.out_q.put((iteration, candidate, budget))
+            
+            elif cmd == "feedback":
+                iteration, bench_score = self.input_q.get(timeout = 3)
+                time_data_line, benchmark_value_line = self.optimizer.feedback(
+                    iteration = iteration, bench_score = bench_score)
+                logger.info("[{}] feedback benchmark: {}".format(self.pid, bench_score))
+                self.out_q.put((time_data_line, benchmark_value_line))
+
+            elif cmd == "best":
+                best_iteration, best_candidate, best_bench = self.optimizer.best()
+                logger.info("[{}] get best candidate: {}".format(self.pid, best_candidate))
+                self.out_q.put((best_iteration, best_candidate, best_bench))
+    
+
+    def terminate(self):
+        ''' process.terminate() '''
+
+        logger.info("Terminate tunning process, pid = {}".format(self.pid))
+
 
 class InitHandler(RequestHandler):
-    """ Init optimizer object.
-    """
-    def __validRequest(self, request_data):
-        """ check if request data is vaild
-
-        """
-        necessay_field = ['name', 'algorithm', 'iteration', 'parameters', 'baseline_score']
-        for _field in necessay_field:
-            if not request_data.__contains__(_field):
-                return False, "field '{}' is not defined!".format(_field)
-        
-        for param_config in request_data['parameters']:
-            necessay_field_param = ['name', 'domain', 'dtype', 'base']
-            for _field in necessay_field_param:
-                if not param_config.__contains__(_field):
-                    return False, "field '{}' is not defined in parameters".format(_field)
-
-            if param_config.__contains__("step") and not param_config.__contains__("range"):
-                return False, "invalid definition of 'step' in parameter '{}'".format(param_config['name'])
-            
-            if sum([param_config.__contains__("range"), param_config.__contains__("options"), param_config.__contains__("sequence")]) > 1:
-                return False, "Duplicate definition of 'range', 'options' and 'sequence' in parameter '{}'".format(param_config['name'])
-
-            if sum([param_config.__contains__("range"), param_config.__contains__("options"), param_config.__contains__("sequence")]) == 0:
-                return False, "Missing definition of 'range', 'options' and 'sequence' in parameter '{}'".format(param_config['name'])
-        return True, ""
-
-
-    def _getOptimizer(self, request_data):
-        if request_data['algorithm'].lower() not in AVALIABLE_ALGORITHM:
-            raise Exception("unkonwn algorithm {}".format(request_data['algorithm']))
-
-        if request_data['algorithm'].lower() == 'tpe':
-            from brain.algorithm.tunning.tpe import TPE
-            _ALGORITHM = TPE
-
-        if request_data['algorithm'].lower() == 'hord':
-            from brain.algorithm.tunning.hord import HORD
-            _ALGORITHM = HORD
-        
-        if request_data['algorithm'].lower() == 'random':
-            from brain.algorithm.tunning.random import Random
-            _ALGORITHM = Random
-
-
-        if request_data['algorithm'].lower() == 'lamcts':
-            from brain.algorithm.tunning.lamcts import LamctsOptim
-            _ALGORITHM = LamctsOptim
-
-
-        if request_data['algorithm'].lower() == 'bgcs':
-            from brain.algorithm.tunning.bgcs import BgcsOptim
-            _ALGORITHM = BgcsOptim
-
-        return _ALGORITHM(
-            opt_name      = request_data['name'], 
-            max_iteration = request_data['iteration'],
-            knobs         = request_data['parameters'], 
-            baseline      = request_data['baseline_score'])
-
+    ''' Init optimizer object '''
 
     def post(self):
-        global OPTIMIZER
+        global TUNING_PROCESS
+
         request_data = json.loads(self.request.body)
-        vaild, message = self.__validRequest(request_data)
-
-        if not vaild:
-            self.write(json.dumps({
-                "suc": False,
-                "msg": "invalid request: {}".format(message)
-            }))
-            self.set_status(400)
-            self.finish()
-            return
-
-        if OPTIMIZER is not None:
-            self.write(json.dumps({
-                "suc": False,
-                "msg": "init optimizer failed: optimizer is runing."
-            }))
-            self.set_status(400)
-            self.finish()
-            return
+        if TUNING_PROCESS is not None:
+            logger.warning("kill tuning process, pid = {}".format(TUNING_PROCESS.pid))
+            TUNING_PROCESS.terminate()
 
         try:
-            OPTIMIZER = self._getOptimizer(request_data)
+            TUNING_PROCESS = BrainProcess(
+                name = request_data["name"],
+                algorithm = request_data["algorithm"],
+                iteration = request_data["iteration"],
+                parameters = request_data["parameters"],
+                baseline = request_data["baseline_score"],
+                rule_list = [[]]    # TODO: add rule list
+            )
+            # Get csv file head after initialzation.
+            TUNING_PROCESS.start()
+            head_param, head_bench, head_time = TUNING_PROCESS.out_q.get(timeout = 3)
 
         except Exception as e:
-            self.write(json.dumps({
-                "suc": False,
-                "msg": "init optimizer failed:{}".format(e)
-            }))
+            logger.error("Initailize optimizer process failed:{}".format(e))
+            self.write(json.dumps({"suc": False,
+                "msg": "Initailize optimizer process failed:{}".format(e)}))
             self.set_status(400)
             self.finish()
-            return
 
         else:
-            HEAD_parameter, HEAD_benchmark, HEAD_time = OPTIMIZER.getDataHead()
-            self.write(json.dumps({
-                    "suc": True,
-                    "msg": "",
-                    "parameters_head" : HEAD_parameter,
-                    "score_head"      : HEAD_benchmark,
-                    "time_head"       : HEAD_time
-                }))
+            self.write(json.dumps({"suc": True,"msg": "",
+                    "parameters_head" : head_param,
+                    "score_head"      : head_bench,
+                    "time_head"       : head_time}))
             self.set_status(200)
             self.finish()
-            return
 
 
 class AcquireHandler(RequestHandler):
-    def __vailedCandidate(self, candidate):
-        for param in candidate:
-            if param.__contains__('options'):
-                assert param['value'] in param['options']
-
-            elif param.__contains__('sequence'):
-                assert param['value'] in param['sequence']
-            
-            elif param.__contains__('range'):
-                assert param['value'] >= param['range'][0] and param['value'] <= param['range'][1]
+    ''' Acquire a candidate with iteration and budget '''
 
     def get(self):
-        global OPTIMIZER
-        if OPTIMIZER is None:
-            self.write("Optimizer is not active.")
+        global TUNING_PROCESS
+        
+        if TUNING_PROCESS is None:
+            self.write("no tuning process running")
             self.set_status(400)
             self.finish()
-            return
 
         try:
-            iteration, candidate, budget = OPTIMIZER.acquire()
-            parameter_value_list = [str(param['value']) for param in candidate]
-            parameter_value_line = ",".join(parameter_value_list)
-
-            self.__vailedCandidate(candidate)
+            TUNING_PROCESS.cmd_q.put("acquire")
+            iteration, candidate, budget = TUNING_PROCESS.out_q.get(timeout = 30)
 
         except Exception as e:
-            self.write("acquire config failed:{}".format(e))
+            logger.error("Acquire failed: {}".format(e))
+            self.write("Acquire failed:{}".format(e))
             self.set_status(400)
             self.finish()
         
@@ -154,7 +140,7 @@ class AcquireHandler(RequestHandler):
                 "iteration" : iteration,
                 "candidate" : candidate,
                 "budget"    : budget,
-                "parameter_value" : parameter_value_line
+                "parameter_value" : ",".join([str(param['value']) for param in candidate])
             }
             self.write(json.dumps(response_data))
             self.set_status(200)
@@ -162,77 +148,42 @@ class AcquireHandler(RequestHandler):
 
 
 class FeedbackHandler(RequestHandler):
-    """ Feedback benchmark score of a iteration.
+    ''' Feedback benchmark score with iteration '''
 
-    POST
-        {
-            "iteration"     : int, iteration index
-            "bench_score"   :
-            {
-                "Throughput": [45000,45010,49002],
-                "latency99" : [99,98,100]
-            }
-        }
-    """
-    def __validRequest(self, request_data):
-        for _field in ['iteration', 'bench_score']:
-            if not request_data.__contains__(_field):
-                return False, "field '{}' is not defined!".format(_field)
-        return True, ""
-            
     def post(self):
-        global OPTIMIZER
-        if OPTIMIZER is None:
-            self.write("Optimizer is not active.")
-            self.set_status(400)
-            self.finish()
-            return
-
+        global TUNING_PROCESS
         request_data = json.loads(self.request.body)
-        valid, msg = self.__validRequest(request_data)
 
-        if not valid:
-            self.write(json.dumps({
-                "suc": False,
-                "msg": msg,
-                "time_data"  : "",
-                "score_data" : ""
-            }))
+        if TUNING_PROCESS is None:
+            self.write("no tuning process running")
             self.set_status(400)
             self.finish()
-            return
-        
+
         try:
-            time_data_line, benchmark_value_line = OPTIMIZER.feedback(
-                iteration = request_data['iteration'], 
-                bench_score = request_data['bench_score'])
+            TUNING_PROCESS.input_q.put((request_data['iteration'], request_data['bench_score']))
+            TUNING_PROCESS.cmd_q.put("feedback")
+            time_data_line, benchmark_value_line = TUNING_PROCESS.out_q.get(timeout = 30)
 
         except Exception as e:
+            logger.error("Feedback failed: {}".format(e))
             self.write(json.dumps({
-                "suc": False,
-                "msg": "{}".format(e),
-                "time_data"  : "",
-                "score_data" : ""
-            }))
+                "suc": False,"msg": "{}".format(e),"time_data"  : "","score_data" : ""}))
             self.set_status(400)
             self.finish()
 
         else:
             self.write(json.dumps({
-                "suc" : True,
-                "msg" : "",
-                "time_data"  : time_data_line,
-                "score_data" : benchmark_value_line
-            }))
+                "suc" : True,"msg" : "","time_data":time_data_line, "score_data":benchmark_value_line}))
             self.set_status(200)
             self.finish()
 
 
 class EndHandler(RequestHandler):
     def get(self):
-        global OPTIMIZER
-        del OPTIMIZER
-        OPTIMIZER = None
+        global TUNING_PROCESS
+
+        if TUNING_PROCESS is not None:
+            TUNING_PROCESS.terminate()
         
         self.write(json.dumps({"suc": True,"msg": ""}))
         self.set_status(200)
@@ -240,31 +191,21 @@ class EndHandler(RequestHandler):
 
 
 class BestHandler(RequestHandler):
-    def __vailedCandidate(self, candidate):
-        for param in candidate:
-            if param.__contains__('options'):
-                assert param['value'] in param['options']
-
-            elif param.__contains__('sequence'):
-                assert param['value'] in param['sequence']
-            
-            elif param.__contains__('range'):
-                assert param['value'] >= param['range'][0] and param['value'] <= param['range'][1]
-
     def get(self):
-        global OPTIMIZER
-        if OPTIMIZER is None:
-            self.write("Optimizer is not active.")
+        global TUNING_PROCESS
+
+        if TUNING_PROCESS is None:
+            self.write("no tuning process running")
             self.set_status(400)
             self.finish()
-            return
 
         try:
-            best_iteration, best_candidate, best_bench = OPTIMIZER.best()
-            self.__vailedCandidate(best_candidate)
+            TUNING_PROCESS.cmd_q.put("best")
+            best_iteration, best_candidate, best_bench = TUNING_PROCESS.out_q.get(timeout = 30)
 
         except Exception as e:
-            self.write("get best config failed:{}".format(e))
+            logger.error("Get best config failed:{}".format(e))
+            self.write("Get best config failed:{}".format(e))
             self.set_status(400)
             self.finish()
             

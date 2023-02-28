@@ -1,7 +1,7 @@
 %define anolis_release 1
 
 Name:           keentune-brain
-Version:        2.0.1
+Version:        2.1.0
 Release:        %{?anolis_release}%{?dist}
 Url:            https://gitee.com/anolis/keentune_brain
 Summary:        Auto-Tuning algorithm module of KeenTune
