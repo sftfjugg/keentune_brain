@@ -64,6 +64,10 @@ rm -rf $RPM_BUILD_ROOT
 %changelog
 * Tue Feb 28 2023 Runzhe Wang <runzhe.wrz@alibaba-inc.com> - 2.1.0-1
 - running optimizer in sub process
+- running sensitizing in sub process
+- remove sensitize_list api
+- fix algorithm name in avaliable api
+- add api terminate to shutdown sensitizing process
 
 * Fri Jan 13 2023 Runzhe Wang <runzhe.wrz@alibaba-inc.com> - 2.0.1-1
 - fix randomseed
