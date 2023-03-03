@@ -9,7 +9,6 @@ from abc import ABCMeta, abstractmethod
 
 from brain.common.config import Config
 from brain.common import pylog
-from keenopt.searchspace.searchspace import SearchSpace
 
 
 @pylog.functionLog
@@ -109,7 +108,6 @@ class OptimizerUnit(metaclass=ABCMeta):
 
         self.knobs = knobs
         self.dim = len(self.knobs)
-        self.init_search_space()
 
         self.iteration = -1
         self.max_iteration = max_iteration
@@ -131,13 +129,6 @@ class OptimizerUnit(metaclass=ABCMeta):
         self.sigma = 1
         self.rho = 1.005 ** (500 / self.max_iteration)
 
-    def init_search_space(self):
-        """Initialize search space
-        """
-        parameters = {}
-        for knob in self.knobs:
-            parameters[knob['name']] = knob
-        self.searchspace = SearchSpace(parameters)
 
 
     @pylog.functionLog
@@ -429,7 +420,18 @@ class OptimizerUnit(metaclass=ABCMeta):
             self.folder_path, "loss_parts.pkl"), 'wb+'))
         return self.folder_path
 
-    def early_stop(self, N=10):
+    def assess(self, config):
+        """Assess the potential performance of config, if it's against experts' knowledge, retrieve this config
+
+        Args:
+            config = {
+                    "param1":value,
+                    "param2":
+            }
+        """
+        raise NotImplementedError
+
+    def early_stop(self, N=10, threshold=0.01):
         """Stop tuning optimization if the score did not improve in successive `N` steps
         
         """
@@ -439,7 +441,7 @@ class OptimizerUnit(metaclass=ABCMeta):
         for i in range(self.iteration - N + 1, self.iteration+1):
             if self.H_loss[i] == best_loss:
                 return False
-        return False
+        return True
 
     def getDataHead(self):
         """ Get head of parameter_value.csv, score.csv and time.csv
