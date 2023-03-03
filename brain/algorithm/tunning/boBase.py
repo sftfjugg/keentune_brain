@@ -19,6 +19,7 @@ class BOOptimizer(OptimizerUnit):
                  max_iteration: int,
                  knobs: list,
                  baseline: dict,
+                 rule_list=None,
                  sample_num: int=40,
                  initialize_epoch: int=50,
                  update_epoch: int=10,
@@ -27,7 +28,7 @@ class BOOptimizer(OptimizerUnit):
                  normalize=True,
                  sample_func=randfunc,
                  strategy=None,
-                 surrogate=None,):
+                 surrogate=None):
         
         """ initialize optmizer object.
 
@@ -42,7 +43,7 @@ class BOOptimizer(OptimizerUnit):
             update_epoch(int, optional):        Epoch to update neural network model. 
         """
         
-        super().__init__(opt_name,  max_iteration, knobs, baseline)
+        super().__init__(opt_name,  max_iteration, knobs, baseline, rule_list)
         self.init_search_space()
         
         self.strategy    = strategy
@@ -68,7 +69,6 @@ class BOOptimizer(OptimizerUnit):
         self.untrain_x = np.zeros(shape = (0, self.searchspace.dim))
         self.untrain_fx = np.zeros(shape = (0, 1))
         self.model_initialized = False
-
 
     def init_search_space(self):
         """Initialize search space
@@ -103,7 +103,10 @@ class BOOptimizer(OptimizerUnit):
             if self.normalize:
                 self.pts_queue = to_unit_cube(self.searchspace, self.pts_queue)
 
-        if self.iteration > self.sample_num and self.untrain_x.shape[0] >= self.train_interval:
+        # Train/Update model if (enough iterations OR enough untrained samples) AND train interval
+        if ((self.iteration > self.sample_num)
+            or (self.untrain_x.shape[0] >= self.sample_num)) \
+                and (self.untrain_x.shape[0] >= self.train_interval):
             if not self.model_initialized:
                 tic = time.time()
                 self.surrogate._fit(
@@ -198,10 +201,10 @@ class BOOptimizer(OptimizerUnit):
     def dump(self, dump_path: str):
         if not os.path.exists(dump_path):
             os.makedirs(dump_path)
-        
+    
         fx_path = os.path.join(dump_path,"fx.pkl")
         pickle.dump(self.H_fx, open(fx_path,'wb'))
-
+    
         pred_fx_path = os.path.join(dump_path,"pred_fx.pkl")
         pickle.dump(self.H_pred_fx, open(pred_fx_path,'wb'))
         
