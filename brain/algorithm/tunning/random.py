@@ -10,8 +10,9 @@ class Random(OptimizerUnit):
                  opt_name: str,
                  max_iteration: int,
                  knobs: list,
-                 baseline: dict):
-        super(Random, self).__init__(opt_name, max_iteration, knobs, baseline)
+                 baseline: dict,
+                 rule_list=None):
+        super(Random, self).__init__(opt_name, max_iteration, knobs, baseline, rule_list)
 
     @pylog.functionLog
     def acquireImpl(self):

@@ -9,6 +9,7 @@ from abc import ABCMeta, abstractmethod
 
 from brain.common.config import Config
 from brain.common import pylog
+from keenopt.searchspace.searchspace import SearchSpace
 
 
 @pylog.functionLog
@@ -64,7 +65,8 @@ class OptimizerUnit(metaclass=ABCMeta):
                 opt_name: str, 
                 max_iteration: int, 
                 knobs: list, 
-                baseline: dict):
+                baseline: dict,
+                rule_list=list()):
         
         """Init optimizer instance, use tpe algorithm
 
@@ -95,6 +97,11 @@ class OptimizerUnit(metaclass=ABCMeta):
                         "strict"    : boolean, If strict is true, worse result if this benchmark field is Unacceptable in any trade-off.
                     },
                 }
+            rules (list)            : rules for restricting the values of related parameter
+                [
+                    {"p1":"param_2", "p2":"param_4", "rule":">="},
+                    {"p1":"param_1", "p2":"param_4", "rule":"<"}, ...
+                ]
         """
         self.bench = baseline
         self.bench_size = len(self.bench.keys())
@@ -102,9 +109,12 @@ class OptimizerUnit(metaclass=ABCMeta):
 
         self.knobs = knobs
         self.dim = len(self.knobs)
+        self.init_search_space()
 
         self.iteration = -1
         self.max_iteration = max_iteration
+
+        self.rules = self.verified(rule_list,knobs)
 
         self.H_config = []
         self.H_budget = []
@@ -121,6 +131,13 @@ class OptimizerUnit(metaclass=ABCMeta):
         self.sigma = 1
         self.rho = 1.005 ** (500 / self.max_iteration)
 
+    def init_search_space(self):
+        """Initialize search space
+        """
+        parameters = {}
+        for knob in self.knobs:
+            parameters[knob['name']] = knob
+        self.searchspace = SearchSpace(parameters)
 
 
     @pylog.functionLog
@@ -165,6 +182,64 @@ class OptimizerUnit(metaclass=ABCMeta):
         self.sigma = self.sigma * self.rho
         return loss_parts
 
+    def _rule_check(self, config):
+        for rule in self.rules:
+            if not eval("{} {} {}".format(config[rule[0]], rule[2], config[rule[1]])):
+                return False
+        return True
+
+    @pylog.functionLog
+    def validate(self, config, budget):
+        """Validate if the acquired configurations follows prior rules.
+                This method will check each existing rule by _rule_check, allow a maximum of 10 retry of acquire.
+        Returns:
+            validation result: True if found valid config else False
+            config: found config or empty dict()
+        """
+
+        # check each rule
+        rule_valid = self._rule_check(config)
+
+        if not rule_valid:
+            # penalize optimizer
+            # Loss is optimized to be minimized, so the penalty is to return a large positive value
+            self.feedbackImpl(self.iteration, max(self.H_loss[0]*1e3, 1e3))
+
+            # set maximum number of retry for acquiring
+            rule_check_num = 10
+            while rule_check_num > 0:
+                config, budget = self.acquireImpl()
+                rule_check_num = rule_check_num - 1
+                rule_valid = self._rule_check(config)
+                if rule_valid:
+                    break
+                else:
+                    self.feedbackImpl(self.iteration, max(self.H_loss[0]*1e3, 1e3))
+
+            if rule_check_num == 0:
+                # early stop
+                return False, dict(), 0
+
+        return True, config, budget
+
+    @pylog.functionLog
+    def verified(self,rule_list,knobs):
+        """
+        Args:
+        rules:[["client_body_timeout@group-1", "send_timeout", ">="],...]
+        knobs:[{'domain': 'nginx_conf', 'name': 'client_header_timeout@group-1', 'range': [10, 100], 'dtype': 'int', 'base': 'None'},...]
+           
+        """
+        operators = [">",">=","==","<=","<","!="]
+        param_list = [knob["name"] for knob in knobs]
+        valid_rules = []
+        if len(rule_list) > 0:
+            for i in range(len(rule_list)):
+                if rule_list[i][-1] in operators and set(rule_list[i][:2]) <= set(param_list)  :
+                    valid_rules.append(rule_list[i])
+
+        return valid_rules
+
 
     @pylog.functionLog
     def acquire(self):
@@ -204,9 +279,14 @@ class OptimizerUnit(metaclass=ABCMeta):
         # Acquire implement
         config, budget = self.acquireImpl()
 
+        # validate rules if exist
+        if len(self.rules) > 0:
+            valid, config, budget = self.validate(config, budget)
+            if not valid:
+                return -1, [], 0
+
         if len(config.keys()) == 0:
             return -1, [], 0
-
         # After acquire
         candidate = deepcopy(self.knobs)
         for param in candidate:
@@ -223,6 +303,7 @@ class OptimizerUnit(metaclass=ABCMeta):
         self.H_points = np.concatenate((self.H_points, pts), axis=0)
 
         self.H_time[self.iteration][1] = time.time()
+
         return self.iteration, candidate, budget
 
 
@@ -348,20 +429,7 @@ class OptimizerUnit(metaclass=ABCMeta):
             self.folder_path, "loss_parts.pkl"), 'wb+'))
         return self.folder_path
 
-
-    def assess(self, config):
-        """Assess the potential performance of config, if it's against experts' knowledge, retrieve this config
-
-        Args:
-            config = {
-                    "param1":value,
-                    "param2":
-            }
-        """
-        raise NotImplementedError
-    
-
-    def early_stop(self, N=10, threshold=0.01):
+    def early_stop(self, N=10):
         """Stop tuning optimization if the score did not improve in successive `N` steps
         
         """
@@ -371,7 +439,7 @@ class OptimizerUnit(metaclass=ABCMeta):
         for i in range(self.iteration - N + 1, self.iteration+1):
             if self.H_loss[i] == best_loss:
                 return False
-        return True
+        return False
 
     def getDataHead(self):
         """ Get head of parameter_value.csv, score.csv and time.csv
