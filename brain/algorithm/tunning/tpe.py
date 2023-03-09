@@ -15,7 +15,8 @@ class TPE(OptimizerUnit):
                  opt_name: str, 
                  max_iteration: int,
                  knobs: list, 
-                 baseline: dict):
+                 baseline: dict,
+                 rule_list=None):
                          
         """Init optimizer instance, use tpe algorithm
 
@@ -24,7 +25,7 @@ class TPE(OptimizerUnit):
             max_iteration (int): tuning max iteration
         """
 
-        super(TPE, self).__init__(opt_name, max_iteration, knobs, baseline)
+        super(TPE, self).__init__(opt_name, max_iteration, knobs, baseline, rule_list)
         
         self.trials = hyperopt.Trials()
         self.config_pipe = Pipe()
@@ -37,7 +38,7 @@ class TPE(OptimizerUnit):
             None,                   # timeout: None or int
             None,                   # loss_threshold : early-stop if loss is small enough
             self.trials,            # trials : evaluation points
-            np.random,              # rstate : random seed
+            np.random.RandomState(),# rstate : random seed
             False,                  # verbose
             False,                  # allow_trials_fmin
             False,                  # pass_expr_memo_ctrl
@@ -66,7 +67,7 @@ class TPE(OptimizerUnit):
                     param['name'], param['sequence'])
 
             elif param.__contains__('range') and param['dtype'] == 'int':
-                step = param['step'] if param.__contains__('step') else 1
+                step = param['step'] if param.__contains__('step') and param['step'] else 1
                 while (param['range'][1] - param['range'][0]) / step >= AlgoConfig.MAX_SEARCH_SPACE:
                     step *= 2
                 chioce_table = list(

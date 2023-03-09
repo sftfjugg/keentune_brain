@@ -26,16 +26,8 @@ def _config2pts(config: dict, knobs: list):
         _value = config[param['name']]
         if param.__contains__('options'):
             pts.append(int(param['options'].index(_value)))
-
-        elif param.__contains__("sequence"):
-            pts.append(int(param['sequence'].index(_value)))
-
-        elif param.__contains__("range"):
-            pts.append(float(_value))
-
         else:
-            raise Exception("unsupported parameter type!")
-
+            pts.append(float(_value))
     return np.array([pts])
 
 
@@ -72,12 +64,14 @@ class OptimizerUnit(metaclass=ABCMeta):
                 opt_name: str, 
                 max_iteration: int, 
                 knobs: list, 
-                baseline: dict):
+                baseline: dict,
+                rule_list=list()):
         
         """Init optimizer instance, use tpe algorithm
 
         Args:
             opt_name (string)   : name and data folder of this optimizer.
+            opt_type (string)   : 'tuning' or 'collect'
             max_iteration (int) : tuning max iteration
             knobs (list)        : tuning parameters.
                 [
@@ -102,6 +96,11 @@ class OptimizerUnit(metaclass=ABCMeta):
                         "strict"    : boolean, If strict is true, worse result if this benchmark field is Unacceptable in any trade-off.
                     },
                 }
+            rules (list)            : rules for restricting the values of related parameter
+                [
+                    {"p1":"param_2", "p2":"param_4", "rule":">="},
+                    {"p1":"param_1", "p2":"param_4", "rule":"<"}, ...
+                ]
         """
         self.bench = baseline
         self.bench_size = len(self.bench.keys())
@@ -109,8 +108,11 @@ class OptimizerUnit(metaclass=ABCMeta):
 
         self.knobs = knobs
         self.dim = len(self.knobs)
+
         self.iteration = -1
         self.max_iteration = max_iteration
+
+        self.rules = self.verified(rule_list,knobs)
 
         self.H_config = []
         self.H_budget = []
@@ -119,10 +121,14 @@ class OptimizerUnit(metaclass=ABCMeta):
         self.H_points = np.zeros(shape=(0, self.dim), dtype=float)
         self.H_score  = np.zeros(shape=(self.max_iteration, self.bench_size), dtype=float)
         self.H_loss_parts = np.zeros(shape=(self.max_iteration, self.bench_size), dtype=float)
+
+        self.opt_name = "{}[{}]".format(re.sub(r"\)", "]", re.sub(r"\(", "[", opt_name)), self.msg())
+        #self.folder_path = os.path.join(Config.tunning_data_dir, self.opt_type, self.opt_name)
         self.folder_path = os.path.join(Config.TUNE_DATA_PATH, opt_name)
 
         self.sigma = 1
         self.rho = 1.005 ** (500 / self.max_iteration)
+
 
 
     @pylog.functionLog
@@ -167,6 +173,64 @@ class OptimizerUnit(metaclass=ABCMeta):
         self.sigma = self.sigma * self.rho
         return loss_parts
 
+    def _rule_check(self, config):
+        for rule in self.rules:
+            if not eval("{} {} {}".format(config[rule[0]], rule[2], config[rule[1]])):
+                return False
+        return True
+
+    @pylog.functionLog
+    def validate(self, config, budget):
+        """Validate if the acquired configurations follows prior rules.
+                This method will check each existing rule by _rule_check, allow a maximum of 10 retry of acquire.
+        Returns:
+            validation result: True if found valid config else False
+            config: found config or empty dict()
+        """
+
+        # check each rule
+        rule_valid = self._rule_check(config)
+
+        if not rule_valid:
+            # penalize optimizer
+            # Loss is optimized to be minimized, so the penalty is to return a large positive value
+            self.feedbackImpl(self.iteration, max(self.H_loss[0]*1e3, 1e3))
+
+            # set maximum number of retry for acquiring
+            rule_check_num = 10
+            while rule_check_num > 0:
+                config, budget = self.acquireImpl()
+                rule_check_num = rule_check_num - 1
+                rule_valid = self._rule_check(config)
+                if rule_valid:
+                    break
+                else:
+                    self.feedbackImpl(self.iteration, max(self.H_loss[0]*1e3, 1e3))
+
+            if rule_check_num == 0:
+                # early stop
+                return False, dict(), 0
+
+        return True, config, budget
+
+    @pylog.functionLog
+    def verified(self,rule_list,knobs):
+        """
+        Args:
+        rules:[["client_body_timeout@group-1", "send_timeout", ">="],...]
+        knobs:[{'domain': 'nginx_conf', 'name': 'client_header_timeout@group-1', 'range': [10, 100], 'dtype': 'int', 'base': 'None'},...]
+           
+        """
+        operators = [">",">=","==","<=","<","!="]
+        param_list = [knob["name"] for knob in knobs]
+        valid_rules = []
+        if len(rule_list) > 0:
+            for i in range(len(rule_list)):
+                if rule_list[i][-1] in operators and set(rule_list[i][:2]) <= set(param_list)  :
+                    valid_rules.append(rule_list[i])
+
+        return valid_rules
+
 
     @pylog.functionLog
     def acquire(self):
@@ -206,9 +270,14 @@ class OptimizerUnit(metaclass=ABCMeta):
         # Acquire implement
         config, budget = self.acquireImpl()
 
+        # validate rules if exist
+        if len(self.rules) > 0:
+            valid, config, budget = self.validate(config, budget)
+            if not valid:
+                return -1, [], 0
+
         if len(config.keys()) == 0:
             return -1, [], 0
-
         # After acquire
         candidate = deepcopy(self.knobs)
         for param in candidate:
@@ -225,6 +294,7 @@ class OptimizerUnit(metaclass=ABCMeta):
         self.H_points = np.concatenate((self.H_points, pts), axis=0)
 
         self.H_time[self.iteration][1] = time.time()
+
         return self.iteration, candidate, budget
 
 
@@ -242,7 +312,7 @@ class OptimizerUnit(metaclass=ABCMeta):
 
             budget (float) : Benchmark running budget.       
         """
-        pass
+        raise NotImplemented("Optimizer.acquireImpl() is not implemented.")
 
 
     @pylog.functionLog
@@ -253,6 +323,7 @@ class OptimizerUnit(metaclass=ABCMeta):
             iteration (int) : Iteration of this condidate
             bench_score (dict) : Benchmark running result score of each bench.
         """
+        self.H_time[iteration][2] = time.time()
         if iteration != self.iteration:
             raise Exception("iteration mismatch, iteration wanted = {}, iteration feedback = {}".format(
                             self.iteration, iteration))
@@ -260,29 +331,29 @@ class OptimizerUnit(metaclass=ABCMeta):
         loss_parts = self._getLoss(bench_score, iteration)
         mathematical_loss = sum(loss_parts)
 
-        self.H_time[iteration][2] = time.time()
-        self.feedbackImpl(iteration, mathematical_loss)
+        self.H_loss[iteration] = sum(loss_parts)
+        self.H_loss_parts[iteration] = np.array(loss_parts)
+        self.feedbackImpl(iteration, self.H_loss[iteration])
+
+        #self.feedbackImpl(iteration, list(bench_score.values())[0][0])
         self.H_time[iteration][3] = time.time()
 
-        self.H_loss[iteration] = mathematical_loss
-        self.H_loss_parts[iteration] = np.array(loss_parts)
+        if self.iteration % 10 == 1 or self.iteration == self.max_iteration - 1:
+            self.__savefile()
 
         # get *.csv data
         time_value_list = [str(timestamp) for timestamp in self.H_time[iteration]]
         time_data_line = ",".join(time_value_list)
 
         benchmark_value_list = [str(np.mean(score)) for score in bench_score.values()]
-        
+
         benchmark_value_list = list(filter(
-            lambda x:self.bench[list(self.bench.keys())[benchmark_value_list.index(x)]]['weight'] > 0,
+            lambda x: self.bench[list(self.bench.keys())[benchmark_value_list.index(x)]]['weight'] > 0,
             benchmark_value_list
         ))
         benchmark_value_list.append(str(mathematical_loss))
         benchmark_value_line = ",".join(benchmark_value_list)
 
-        if self.iteration % 10 == 1 or self.iteration == self.max_iteration - 1:
-            self.__savefile()
-        
         return time_data_line, benchmark_value_line
 
 
@@ -294,7 +365,7 @@ class OptimizerUnit(metaclass=ABCMeta):
             iteration (int) : Iteration of this iteration
             loss (float) : Final loss of this iteration
         """
-        pass
+        raise NotImplemented("Optimizer.feedbackImpl() is not implemented.")
 
 
     @abstractmethod
@@ -304,7 +375,7 @@ class OptimizerUnit(metaclass=ABCMeta):
         Returns:
             string : message of this optimizer
         """
-        pass
+        raise NotImplemented("Optimizer.msg() is not implemented.")
 
 
     @pylog.functionLog
@@ -317,7 +388,6 @@ class OptimizerUnit(metaclass=ABCMeta):
         H_loss = self.H_loss[:len(self.H_config)]
         best_iteration = H_loss.tolist().index(min(H_loss))
 
-        print(self.H_score)
         best_bench = deepcopy(self.bench)
         for i, bench_name in enumerate(self.bench.keys()):
             best_bench[bench_name]['value'] = self.H_score[best_iteration][i]
@@ -334,22 +404,49 @@ class OptimizerUnit(metaclass=ABCMeta):
     def __savefile(self):
         if not os.path.exists(self.folder_path):
             os.makedirs(self.folder_path)
-        
-        pickle.dump(self.knobs,         open(os.path.join(self.folder_path, "knobs.pkl"), 'wb+'))
-        pickle.dump(self.bench,         open(os.path.join(self.folder_path, "bench.pkl"), 'wb+'))
-        pickle.dump(self.H_time,        open(os.path.join(self.folder_path, "time.pkl"), 'wb+'))
-        pickle.dump(self.H_loss,        open(os.path.join(self.folder_path, "loss.pkl"), 'wb+'))
-        pickle.dump(self.H_score,       open(os.path.join(self.folder_path, "score.pkl"), 'wb+'))
-        pickle.dump(self.H_points,      open(os.path.join(self.folder_path, "points.pkl"), 'wb+'))
-        pickle.dump(self.H_loss_parts,  open(os.path.join(self.folder_path, "loss_parts.pkl"), 'wb+'))
-
+        pickle.dump(self.knobs, open(os.path.join(
+            self.folder_path, "knobs.pkl"), 'wb+'))
+        pickle.dump(self.bench, open(os.path.join(
+            self.folder_path, "bench.pkl"), 'wb+'))
+        pickle.dump(self.H_time, open(os.path.join(
+            self.folder_path, "time.pkl"), 'wb+'))
+        pickle.dump(self.H_loss, open(os.path.join(
+            self.folder_path, "loss.pkl"), 'wb+'))
+        pickle.dump(self.H_score, open(os.path.join(
+            self.folder_path, "score.pkl"), 'wb+'))
+        pickle.dump(self.H_points, open(os.path.join(
+            self.folder_path, "points.pkl"), 'wb+'))
+        pickle.dump(self.H_loss_parts, open(os.path.join(
+            self.folder_path, "loss_parts.pkl"), 'wb+'))
         return self.folder_path
 
+    def assess(self, config):
+        """Assess the potential performance of config, if it's against experts' knowledge, retrieve this config
+
+        Args:
+            config = {
+                    "param1":value,
+                    "param2":
+            }
+        """
+        raise NotImplementedError
+
+    def early_stop(self, N=10, threshold=0.01):
+        """Stop tuning optimization if the score did not improve in successive `N` steps
+        
+        """
+        if self.iteration < N:
+            return False
+        best_loss = min(self.H_loss[:self.iteration+1])
+        for i in range(self.iteration - N + 1, self.iteration+1):
+            if self.H_loss[i] == best_loss:
+                return False
+        return True
 
     def getDataHead(self):
         """ Get head of parameter_value.csv, score.csv and time.csv
-        
-            Return the head of *.csv data after instance already initialized, *.csv files is supposed to be saved by keentuned.            
+
+            Return the head of *.csv data after instance already initialized, *.csv files is supposed to be saved by keentuned.
         """
         parameter_name_list = [param['name'] for param in self.knobs]
         HEAD_parameter = ",".join(parameter_name_list)

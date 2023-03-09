@@ -31,9 +31,9 @@ def _adjustStep(param: dict):
     else:
         default_step = 1
 
-    if param.__contains__('step'):
+    try:
         step = max(default_step, param['step'])
-    else:
+    except Exception:
         step = default_step
 
     while (param['range'][1] - param['range'][0]) / step > AlgoConfig.MAX_SEARCH_SPACE:
@@ -125,9 +125,10 @@ class HORD(OptimizerUnit):
                  opt_name: str, 
                  max_iteration: int,
                  knobs: list, 
-                 baseline: dict):
+                 baseline: dict,
+                 rule_list=None):
 
-        super(HORD, self).__init__(opt_name, max_iteration, knobs, baseline)
+        super(HORD, self).__init__(opt_name, max_iteration, knobs, baseline, rule_list)
         self.problem = Problem(knobs, max_iteration)
 
         self.strategy = self.__getStrategy()

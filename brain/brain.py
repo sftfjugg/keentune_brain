@@ -1,7 +1,7 @@
 import tornado
 import os
 
-from brain.controller import tunning, sensi, system
+from brain.controller import tunning, sensitize
 from brain.common.config import Config
 
 """
@@ -27,10 +27,11 @@ def main():
         (r"/feedback", tunning.FeedbackHandler),
         (r"/best", tunning.BestHandler),
         (r"/end", tunning.EndHandler),
-        (r"/sensitize", sensi.sensitizeHandler),
-        (r"/avaliable", system.avaliableHandler),
-        (r"/sensitize_list", system.dataListHandler),
-        (r"/sensitize_delete", system.dataDeleteHandler),
+        (r"/sensitize", sensitize.SensitizeHandler),
+        (r"/avaliable", sensitize.AvaliableHandler),
+        (r"/terminate", sensitize.TerminateHandler),
+        # (r"/sensitize_list", sensitize.dataListHandler),
+        (r"/sensitize_delete", sensitize.DataDeleteHandler),
     ])
     http_server_brain = tornado.httpserver.HTTPServer(app_brain)
     http_server_brain.listen(Config.BRAIN_PORT)
