@@ -45,7 +45,7 @@ class SensitizeProcess(Process):
             logger.info("[{}] Sensitize result: {}".format(self.pid, sensitize_result))
 
             head = ",".join([i['name'] for i in sensitize_result])
-            data = pickle.load(open(sensi_file_path,'rb')).tolist()
+            data = pickle.load(open(sensi_file,'rb')).tolist()
             response_data = {"suc": True, "head": head, "result": data, "msg": ""}
 
         except Exception as e:
