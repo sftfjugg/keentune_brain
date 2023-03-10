@@ -345,7 +345,7 @@ def _sensitizeRun(X, y, params, learner="xgboost", explainer="xsen", epoch=50, t
     return result, sensi_file
 
 @pylog.functionLog
-def sensitize(data_name="", explainer='xsen', trials=0, epoch=50, topN=10, threshold=0.9):
+def sensitize(data_name="", explainer='xsen', trials=3, epoch=50, topN=10, threshold=0.9):
     """Call sensitivity estimation algorithms
 
         Args:
