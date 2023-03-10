@@ -55,11 +55,6 @@ class SensitizeProcess(Process):
         httpResponse(response_data, self.response_ip, self.response_port, "sensitize_result")
 
 
-    def terminate(self):
-        ''' process.terminate() '''
-        logger.info("Terminate sensitize process, pid = {}".format(self.pid))
-
-
 class SensitizeHandler(RequestHandler):
     def post(self):
         global SENSITIZE_PROCESSES
@@ -99,6 +94,7 @@ class TerminateHandler(RequestHandler):
         global SENSITIZE_PROCESSES
 
         for p in SENSITIZE_PROCESSES:
+            logger.info("Terminate sensitize process, pid = {}".format(p.pid))
             p.terminate()
         
         self.set_status(200)

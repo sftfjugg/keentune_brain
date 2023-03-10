@@ -68,12 +68,6 @@ class BrainProcess(Process):
                 self.out_q.put((best_iteration, best_candidate, best_bench))
     
 
-    def terminate(self):
-        ''' process.terminate() '''
-
-        logger.info("Terminate tunning process, pid = {}".format(self.pid))
-
-
 class InitHandler(RequestHandler):
     ''' Init optimizer object '''
 
@@ -82,7 +76,7 @@ class InitHandler(RequestHandler):
 
         request_data = json.loads(self.request.body)
         if TUNING_PROCESS is not None:
-            logger.warning("kill tuning process, pid = {}".format(TUNING_PROCESS.pid))
+            logger.warning("Kill tuning process, pid = {}".format(TUNING_PROCESS.pid))
             TUNING_PROCESS.terminate()
 
         try:
@@ -183,6 +177,7 @@ class EndHandler(RequestHandler):
         global TUNING_PROCESS
 
         if TUNING_PROCESS is not None:
+            logger.info("Terminate tunning process, pid = {}".format(TUNING_PROCESS.pid))
             TUNING_PROCESS.terminate()
         
         self.write(json.dumps({"suc": True,"msg": ""}))
