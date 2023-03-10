@@ -15,7 +15,8 @@ class TPE(OptimizerUnit):
                  opt_name: str, 
                  max_iteration: int,
                  knobs: list, 
-                 baseline: dict):
+                 baseline: dict,
+                 rule_list=None):
                          
         """Init optimizer instance, use tpe algorithm
 
@@ -24,7 +25,7 @@ class TPE(OptimizerUnit):
             max_iteration (int): tuning max iteration
         """
 
-        super(TPE, self).__init__(opt_name, max_iteration, knobs, baseline)
+        super(TPE, self).__init__(opt_name, max_iteration, knobs, baseline, rule_list)
         
         self.trials = hyperopt.Trials()
         self.config_pipe = Pipe()

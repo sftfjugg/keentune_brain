@@ -10,9 +10,10 @@ from keenopt.surrogate.MCTS import MCTS
 class LamctsOptim(BOOptimizer):
     def __init__(self,
                  opt_name: str,
+                 max_iteration: int,
                  knobs: List,
                  baseline: Dict,
-                 max_iteration: int=100,
+                 rule_list=None,
                  sample_num: int=40,
                  batch_size: int=5,
                 ):
@@ -21,7 +22,7 @@ class LamctsOptim(BOOptimizer):
             sample_num = sample_iteration
         else:
             sample_num = batch_size
-        super().__init__(opt_name, max_iteration, knobs, baseline,sample_num)
+        super().__init__(opt_name, max_iteration, knobs, baseline, rule_list, sample_num)
 
 
         self.strategy = LaMCTS(

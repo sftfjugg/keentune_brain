@@ -125,9 +125,10 @@ class HORD(OptimizerUnit):
                  opt_name: str, 
                  max_iteration: int,
                  knobs: list, 
-                 baseline: dict):
+                 baseline: dict,
+                 rule_list=None):
 
-        super(HORD, self).__init__(opt_name, max_iteration, knobs, baseline)
+        super(HORD, self).__init__(opt_name, max_iteration, knobs, baseline, rule_list)
         self.problem = Problem(knobs, max_iteration)
 
         self.strategy = self.__getStrategy()

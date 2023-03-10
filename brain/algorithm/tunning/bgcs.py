@@ -14,6 +14,7 @@ class BgcsOptim(BOOptimizer):
                  max_iteration: int,
                  knobs: list,
                  baseline: dict,
+                 rule_list=None,
                  sample_num: int = 20,
                  batch_size: int = 5,
                  normalize=False,
@@ -23,7 +24,7 @@ class BgcsOptim(BOOptimizer):
             sample_num = sample_iteration
         else:
             sample_num = batch_size
-        super().__init__(opt_name,  max_iteration, knobs, baseline, sample_num,normalize=normalize)
+        super().__init__(opt_name,  max_iteration, knobs, baseline, rule_list, sample_num,normalize=normalize)
         parameters = {}
         for knob in self.knobs:
             parameters[knob['name']] = knob

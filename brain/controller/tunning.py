@@ -21,23 +21,23 @@ class BrainProcess(Process):
 
         if algorithm.lower() == "tpe":
             from brain.algorithm.tunning.tpe import TPE
-            self.optimizer = TPE(name, iteration, parameters, baseline)
+            self.optimizer = TPE(name, iteration, parameters, baseline,rule_list)
 
         elif algorithm.lower() == "hord":
             from brain.algorithm.tunning.hord import HORD
-            self.optimizer = HORD(name, iteration, parameters, baseline)
+            self.optimizer = HORD(name, iteration, parameters, baseline,rule_list)
 
         elif algorithm.lower() == "random":
             from brain.algorithm.tunning.random import Random
-            self.optimizer = Random(name, iteration, parameters, baseline)
+            self.optimizer = Random(name, iteration, parameters, baseline,rule_list)
         
         elif algorithm.lower() == "lamcts":
             from brain.algorithm.tunning.lamcts import LamctsOptim
-            self.optimizer = LamctsOptim(name, iteration, parameters, baseline)
+            self.optimizer = LamctsOptim(name, iteration, parameters, baseline,rule_list)
 
         elif algorithm.lower() == "bgcs":
             from brain.algorithm.tunning.bgcs import BgcsOptim
-            self.optimizer = BgcsOptim(name, iteration, parameters, baseline)
+            self.optimizer = BgcsOptim(name, iteration, parameters, baseline,rule_list)
         else:
             raise Exception("invalid algorithom: {}".format(algorithm))
 
@@ -86,7 +86,7 @@ class InitHandler(RequestHandler):
                 iteration = request_data["iteration"],
                 parameters = request_data["parameters"],
                 baseline = request_data["baseline_score"],
-                rule_list = [[]]    # TODO: add rule list
+                rule_list = request_data["rule_list"]    # TODO: add rule list
             )
             # Get csv file head after initialzation.
             TUNING_PROCESS.start()
