@@ -20,23 +20,23 @@ class BrainProcess(Process):
         self.cmd_q, self.out_q, self.input_q = Queue(), Queue(), Queue()
 
         if algorithm.lower() == "tpe":
-            from brain.algorithm.tunning.tpe import TPE
+            from brain.algorithm.tuning.tpe import TPE
             self.optimizer = TPE(name, iteration, parameters, baseline,rule_list)
 
         elif algorithm.lower() == "hord":
-            from brain.algorithm.tunning.hord import HORD
+            from brain.algorithm.tuning.hord import HORD
             self.optimizer = HORD(name, iteration, parameters, baseline,rule_list)
 
         elif algorithm.lower() == "random":
-            from brain.algorithm.tunning.random import Random
+            from brain.algorithm.tuning.random import Random
             self.optimizer = Random(name, iteration, parameters, baseline,rule_list)
         
         elif algorithm.lower() == "lamcts":
-            from brain.algorithm.tunning.lamcts import LamctsOptim
+            from brain.algorithm.tuning.lamcts import LamctsOptim
             self.optimizer = LamctsOptim(name, iteration, parameters, baseline,rule_list)
 
         elif algorithm.lower() == "bgcs":
-            from brain.algorithm.tunning.bgcs import BgcsOptim
+            from brain.algorithm.tuning.bgcs import BgcsOptim
             self.optimizer = BgcsOptim(name, iteration, parameters, baseline,rule_list)
         else:
             raise Exception("invalid algorithom: {}".format(algorithm))
